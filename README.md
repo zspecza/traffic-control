@@ -44,6 +44,8 @@ A good place to put it is on your staging site via Netlify's script injection fe
 
 ![](https://infinit.io/_/3dSfWya.png)
 
+The final step is to configure Github OAuth for your Netlify site. You can do that by following the instructions here: https://www.netlify.com/docs/authentication-providers
+
 ## Goals
 
 Eventually, I want to get rid of the dependency on Netlify & jQuery and have this be its own Github integration. Keep eyes peeled!
