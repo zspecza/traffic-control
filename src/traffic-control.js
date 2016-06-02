@@ -1,4 +1,6 @@
-module.exports = function trafficControl (opts) {
+'use strict'
+
+export default function trafficControl (opts) {
   opts = opts || {}
   opts.GH_API = opts.GH_API || 'https://api.github.com'
   opts.stagingBranch = opts.stagingBranch || 'develop'
