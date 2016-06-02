@@ -1,6 +1,9 @@
 # Annoying files
 .DS_Store
 
+# temporary
+examples
+
 # Logs
 logs
 *.log

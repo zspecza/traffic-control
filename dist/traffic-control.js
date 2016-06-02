@@ -107,11 +107,15 @@
 
     function conditionallyLoadJQuery() {
       var jQuery = window.jQuery;
+      var protocol = '//';
+      if (window.location.href.includes('file://')) {
+        protocol = 'https://';
+      }
       if (!(typeof jQuery !== 'undefined' && jQuery !== null)) {
         var jQ = document.createElement('script');
         jQ.type = 'text/javascript';
         jQ.onload = jQ.onreadystatechange = init;
-        jQ.src = '//code.jquery.com/jquery-2.2.4.min.js';
+        jQ.src = protocol + 'code.jquery.com/jquery-2.2.4.min.js';
         return document.body.appendChild(jQ);
       } else {
         return init();
