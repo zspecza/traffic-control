@@ -1,19 +1,31 @@
 {
   "name": "traffic-control",
-  "version": "0.0.1",
   "description": "Get a grip on staging",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "version": "0.0.1",
+  "author": "Declan de Wet <declandewet@me.com>",
+  "bugs": {
+    "url": "https://github.com/declandewet/traffic-control/issues"
   },
+  "devDependencies": {
+    "babel-preset-es2015-rollup": "^1.1.1",
+    "rollup": "^0.26.3",
+    "rollup-plugin-babel": "^2.4.0",
+    "rollup-plugin-uglify": "^0.3.1"
+  },
+  "homepage": "https://github.com/declandewet/traffic-control#readme",
+  "license": "MIT",
+  "main": "dist/traffic-control.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/declandewet/traffic-control.git"
   },
-  "author": "Declan de Wet <declandewet@me.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/declandewet/traffic-control/issues"
-  },
-  "homepage": "https://github.com/declandewet/traffic-control#readme"
+  "scripts": {
+    "build": "concurrently \"npm run build-dev\" \"npm run build-prod\" \"npm run build-min\"",
+    "build-dev": "rollup --config rollup.config.dev.js",
+    "build-min": "rollup --config rollup.config.minified.js",
+    "build-prod": "rollup -c",
+    "pretest": "npm run build",
+    "preversion": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
 }
