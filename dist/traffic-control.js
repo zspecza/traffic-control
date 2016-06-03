@@ -558,7 +558,46 @@
 
   var initialMarkup = "<div class=\"tc-bar\">\n  <div class=\"tc-message\">\n    <div class=\"tc-container\">\n      <div class=\"tc-message--text tc-message--loading\">\n        Loading...\n      </div>\n      <div class=\"tc-message--text tc-message--synchronized\">\n        You are viewing the staging site.\n        Everything is in sync, production is even with staging. 👌\n      </div>\n      <div class=\"tc-message--text tc-message--ahead\"></div>\n      <div class=\"tc-message--text tc-message--diverged\"></div>\n      <div class=\"tc-message--text tc-message--unauthorized\">\n        You are viewing the staging site,\n        but you cannot deploy or view changes\n        until you authorize read/write access\n        to your Github repository.\n      </div>\n    </div>\n  </div>\n  <div class=\"tc-action\">\n    <div class=\"tc-container\">\n      <button\n        class=\"tc-action--button tc-action--deploy\"\n        aria-label=\"Perform a deployment to the production branch.\"\n      >Deploy</button>\n      <button\n        class=\"tc-action--button tc-action--authorize\"\n        aria-label=\"Authorize traffic-control to access your Github account.\"\n      >Authorize</button>\n      <button\n        class=\"tc-action--button tc-action--info\"\n        aria-label=\"Find out more information.\"\n      >How?</button>\n    </div>\n  </div>\n  <div class=\"tc-close\">\n    <div class=\"tc-container\">\n      <button\n        class=\"tc-close--button\"\n        aria-label=\"Close traffic-control deployment user interface.\"\n      >&times;</button>\n    </div>\n  </div>\n</div>\n";
 
-  var styles = "/*\n  Note: there is a lot of repetition going on in this CSS.\n  This is intentional, in order to keep specificity low\n  enough that custom styles are easier to implement.\n */\n\ntraffic-control,\ntraffic-control *,\ntraffic-control *:before,\ntraffic-control *:after {\n  box-sizing: border-box;\n}\n\ntraffic-control {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100%;\n  z-index: 10000;\n}\n\ntraffic-control .tc-bar {\n  display: none;\n  width: 100%;\n  height: 100%;\n  table-layout: fixed;\n  font-family: sans-serif;\n  background: #fff;\n  color: #000;\n  transition: all .2s ease;\n}\n\ntraffic-control.is-loading .tc-bar {\n  background: #eee;\n  color: #ccc;\n}\n\ntraffic-control .tc-bar.is-entering {\n  animation: slideInDown .6s ease both;\n}\n\ntraffic-control .tc-message {\n  display: table-cell;\n  vertical-align: middle;\n  height: 100%;\n}\n\ntraffic-control .tc-action {\n  display: table-cell;\n  vertical-align: middle;\n  height: 100%;\n  width: 100px;\n}\n\ntraffic-control .tc-close {\n  display: table-cell;\n  vertical-align: middle;\n  height: 100%;\n  width: 60px;\n  border-left: 1px solid #eee;\n  transition: all .2s ease;\n}\n\ntraffic-control.is-loading .tc-close {\n  border-color: #ccc;\n}\n\ntraffic-control .tc-message--text {\n  font-size: 14px;\n  position: relative;\n  padding: 16px;\n}\n\ntraffic-control .tc-message--loading {\n  display: none;\n  opacity: 0;\n}\n\ntraffic-control .tc-message--loading.is-entering {\n  animation: bounceFadeInLeft .6s cubic-bezier(0.19, 1, 0.22, 1) both;\n  animation-delay: .3s;\n}\n\ntraffic-control .tc-message--synchronized {\n  display: none;\n}\n\ntraffic-control .tc-message--diverged {\n  display: none;\n}\n\ntraffic-control .tc-message--unauthorized {\n  display: none;\n}\n\ntraffic-control .tc-message--ahead {\n  display: none;\n}\n\ntraffic-control .tc-action--deploy {\n  display: none;\n}\n\ntraffic-control .tc-action--info {\n  display: none;\n}\n\ntraffic-control .tc-action--authorize {\n  display: none;\n}\n\ntraffic-control .tc-close--button {\n  display: none;\n  margin: 0 auto;\n  padding: 16px;\n  width: 100%;\n  border: none;\n  outline: none;\n  background: none;\n  color: #eee;\n  font-size: 24px;\n  font-family: Arial, sans-serif;\n  cursor: pointer;\n  height: 100%;\n  position: relative;\n  transition: all .2s ease;\n  text-align: center;\n}\n\ntraffic-control.is-loading .tc-close--button {\n  border-color: #ccc;\n  color: #ccc;\n}\n\ntraffic-control .tc-close--button.is-entering {\n  animation: bounceFadeInRight .6s cubic-bezier(0.19, 1, 0.22, 1) both;\n  animation-delay: .3s;\n}\n\ntraffic-control .tc-bar.is-active {\n  display: table;\n}\n\ntraffic-control .tc-message--loading.is-active {\n  display: block;\n  opacity: 1;\n}\n\ntraffic-control .tc-message--synchronized.is-active {\n  display: block;\n}\n\ntraffic-control .tc-message--diverged.is-active {\n  display: block;\n}\n\ntraffic-control .tc-message--unauthorized.is-active {\n  display: block;\n}\n\ntraffic-control .tc-message--ahead.is-active {\n  display: block;\n}\n\ntraffic-control .tc-action--deploy.is-active {\n  display: block;\n}\n\ntraffic-control .tc-action--info.is-active {\n  display: block;\n}\n\ntraffic-control .tc-action--authorize.is-active {\n  display: block;\n}\n\ntraffic-control .tc-close--button.is-active {\n  display: block;\n}\n\n@keyframes bounceFadeInRight {\n  0% {\n    opacity: 0;\n    transform: translateX(100%);\n  }\n  50% {\n    opacity: 1;\n    transform: translateX(-25%);\n  }\n  100% {\n    opacity: 1;\n    transform: translateX(0);\n  }\n}\n\n@keyframes bounceFadeInLeft {\n  0% {\n    opacity: 0;\n    transform: translateX(-100%);\n  }\n  50% {\n    opacity: 1;\n    transform: translateX(25%);\n  }\n  100% {\n    opacity: 1;\n    transform: translateX(0);\n  }\n}\n\n@keyframes slideInDown {\n  0% {\n    transform: translateY(-100%)\n  }\n  100% {\n    transform: translateY(0)\n  }\n}\n";
+  var styles = "/*\n  Note: there is a lot of repetition going on in this CSS.\n  This is intentional, in order to keep specificity low\n  enough that custom styles are easier to implement.\n */\n\ntraffic-control,\ntraffic-control *,\ntraffic-control *:before,\ntraffic-control *:after {\n  box-sizing: border-box;\n}\n\ntraffic-control {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100%;\n  z-index: 10000;\n}\n\ntraffic-control .tc-bar {\n  display: none;\n  width: 100%;\n  height: 100%;\n  table-layout: fixed;\n  font-family: sans-serif;\n  background: #fff;\n  color: #000;\n  transition: all .2s ease;\n}\n\ntraffic-control.is-loading .tc-bar {\n  background: #eee;\n  color: #aaa;\n}\n\ntraffic-control .tc-bar.is-entering {\n  animation: slideInDown .6s ease both;\n}\n\ntraffic-control .tc-message {\n  display: table-cell;\n  vertical-align: middle;\n  height: 100%;\n}\n\ntraffic-control .tc-action {\n  display: table-cell;\n  vertical-align: middle;\n  height: 100%;\n  width: 100px;\n}\n\ntraffic-control .tc-close {\n  display: table-cell;\n  vertical-align: middle;\n  height: 100%;\n  width: 60px;\n  border-left: 1px solid #eee;\n  transition: all .2s ease;\n}\n\ntraffic-control.is-loading .tc-close {\n  border-color: #ccc;\n}\n\ntraffic-control .tc-message--text {\n  font-size: 14px;\n  position: relative;\n  padding: 16px;\n}\n\ntraffic-control .tc-message--loading {\n  display: none;\n  opacity: 0;\n}\n\ntraffic-control .tc-message--loading.is-entering {\n  animation: bounceFadeInLeft .6s cubic-bezier(0.19, 1, 0.22, 1) both;\n  animation-delay: .3s;\n}\n\ntraffic-control .tc-message--synchronized {\n  display: none;\n}\n\ntraffic-control .tc-message--diverged {\n  display: none;\n}\n\ntraffic-control .tc-message--unauthorized {\n  display: none;\n}\n\ntraffic-control .tc-message--ahead {\n  display: none;\n}\n\ntraffic-control .tc-action--deploy {\n  display: none;\n}\n\ntraffic-control .tc-action--info {\n  display: none;\n}\n\ntraffic-control .tc-action--authorize {\n  display: none;\n}\n\ntraffic-control .tc-close--button {\n  display: none;\n  margin: 0 auto;\n  padding: 16px;\n  width: 100%;\n  border: none;\n  outline: none;\n  background: none;\n  color: #eee;\n  font-size: 24px;\n  font-family: Arial, sans-serif;\n  cursor: pointer;\n  height: 100%;\n  position: relative;\n  transition: all .2s ease;\n  text-align: center;\n}\n\ntraffic-control.is-loading .tc-close--button {\n  border-color: #ccc;\n  color: #ccc;\n}\n\ntraffic-control .tc-close--button.is-entering {\n  animation: bounceFadeInRight .6s cubic-bezier(0.19, 1, 0.22, 1) both;\n  animation-delay: .3s;\n}\n\ntraffic-control .tc-bar.is-active {\n  display: table;\n}\n\ntraffic-control .tc-message--loading.is-active {\n  display: block;\n  opacity: 1;\n}\n\ntraffic-control .tc-message--synchronized.is-active {\n  display: block;\n}\n\ntraffic-control .tc-message--diverged.is-active {\n  display: block;\n}\n\ntraffic-control .tc-message--unauthorized.is-active {\n  display: block;\n}\n\ntraffic-control .tc-message--ahead.is-active {\n  display: block;\n}\n\ntraffic-control .tc-action--deploy.is-active {\n  display: block;\n}\n\ntraffic-control .tc-action--info.is-active {\n  display: block;\n}\n\ntraffic-control .tc-action--authorize.is-active {\n  display: block;\n}\n\ntraffic-control .tc-close--button.is-active {\n  display: block;\n}\n\n@keyframes bounceFadeInRight {\n  0% {\n    opacity: 0;\n    transform: translateX(100%);\n  }\n  50% {\n    opacity: 1;\n    transform: translateX(-25%);\n  }\n  100% {\n    opacity: 1;\n    transform: translateX(0);\n  }\n}\n\n@keyframes bounceFadeInLeft {\n  0% {\n    opacity: 0;\n    transform: translateX(-100%);\n  }\n  50% {\n    opacity: 1;\n    transform: translateX(25%);\n  }\n  100% {\n    opacity: 1;\n    transform: translateX(0);\n  }\n}\n\n@keyframes slideInDown {\n  0% {\n    transform: translateY(-100%)\n  }\n  100% {\n    transform: translateY(0)\n  }\n}\n";
+
+  /**
+   * [trafficControl description]
+   * @param  {[type]} opts [description]
+   * @return {[type]}      [description]
+   */
+  function trafficControl(opts) {
+    var netlify = window.netlify;
+
+    /**
+     * [description]
+     * @return {[type]} [description]
+     */
+    var init = function init() {
+      return new TrafficControl(opts);
+    };
+
+    /**
+     * [description]
+     * @return {[type]} [description]
+     */
+    var conditionallyLoadNetlify = function conditionallyLoadNetlify() {
+      if (netlify == null) {
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.onload = script.onreadystatechange = init;
+        script.src = 'https://app.netlify.com/authentication.js';
+        return document.body.appendChild(script);
+      } else {
+        return init();
+      }
+    };
+
+    if (window.addEventListener) {
+      window.addEventListener('load', conditionallyLoadNetlify, false);
+    } else if (window.attachEvent) {
+      window.attachEvent('onload', conditionallyLoadNetlify);
+    }
+  }
 
   /**
    *
@@ -623,6 +662,7 @@
 
         this._addCss(styles);
         this.el = document.createElement('traffic-control');
+        this.el.id = 'traffic-control';
         this.el.innerHTML = initialMarkup;
         this.els = {
           bar: this.el.getElementsByClassName('tc-bar')[0],
@@ -786,133 +826,131 @@
     }
   }();
 
-  function trafficControl(opts) {
-
-    return new TrafficControl(opts);
-
-    opts = opts || {};
-    opts.GH_API = opts.GH_API || 'https://api.github.com';
-    opts.stagingBranch = opts.stagingBranch || 'develop';
-    opts.productionBranch = opts.productionBranch || 'master';
-
-    if (opts.repo == null) {
-      throw new Error('You need to specify a repository.');
-    }
-
-    var body = document.getElementsByTagName('body')[0];
-    var bar = document.createElement('div');
-    bar.id = 'staging-bar';
-    bar.style.backgroundColor = '#eee';
-    bar.style.color = '#222';
-    bar.style.fontFamily = 'sans-serif';
-    bar.style.padding = '16px 8px';
-    bar.style.position = 'fixed';
-    bar.style.top = '0';
-    bar.style.width = '100%';
-    bar.innerText = 'Loading...';
-    body.insertBefore(bar, body.firstChild);
-
-    function init() {
-      var $ = window.$;
-      var localStorage = window.localStorage;
-      var netlify = window.netlify;
-
-      var $body = $(body);
-      var $bar = $('#staging-bar');
-      var $msg = $('<div />');
-
-      function bar() {
-        if (!localStorage.gh_token) {
-          $bar.empty();
-          var $authBtn = $('<button>Authorize</button>');
-          $msg.text('You are viewing the staging site, but you cannot deploy or view changes until you authorize read/write access to your Github repository.');
-          $bar.append($msg);
-          $bar.css({
-            backgroundColor: '#E02D2D',
-            color: 'white'
-          });
-          $bar.append($authBtn);
-          $body.prepend($bar);
-          $authBtn.on('click', function () {
-            netlify.authenticate({ provider: 'github', scope: 'repo' }, function (err, data) {
-              if (err) {
-                console.log('Error authenticating: %s', err.message);
-              }
-              localStorage.gh_token = data.token;
-              bar();
-            });
-          });
-        } else {
-          $.getJSON(opts.GH_API + '/repos/' + opts.repo + '/compare/' + opts.productionBranch + '...' + opts.stagingBranch + 'develop?access_token=' + localStorage.gh_token, function (data) {
-            $bar.empty();
-            var $deployBtn = $('<button>Deploy</button>');
-            if (data.status === 'ahead') {
-              var have = data.ahead_by > 1 ? 'have' : 'has';
-              var changes = data.ahead_by > 1 ? 'changes' : 'change';
-              $msg.html('You are viewing the staging site. There ' + have + ' been <a href="' + data.permalink_url + '" target="_blank">' + data.ahead_by + '</a> ' + changes + ' since the last production build. 🚢');
-              $bar.append($msg);
-              $bar.css({
-                backgroundColor: '#B8D5E9',
-                color: '#222'
-              });
-              $bar.append($deployBtn);
-              $body.prepend($bar);
-              $deployBtn.on('click', function () {
-                $.post(opts.GH_API + '/repos/' + opts.repo + '/merges?access_token=' + localStorage.gh_token, JSON.stringify({
-                  base: 'master',
-                  head: 'develop',
-                  commit_message: ':vertical_traffic_light: Production deploy triggered from traffic-control'
-                }), function () {
-                  bar();
-                });
-              });
-            } else if (data.status === 'diverged') {
-              var commits = data.behind_by > 1 ? 'commits' : 'commit';
-              $msg.html('You are viewing the staging site. Staging has diverged behind production by <a href="' + data.permalink_url + '" target="_blank">' + data.behind_by + '</a> ' + commits + '. Please rebase.');
-              $bar.append($msg);
-              $bar.css({
-                backgroundColor: 'orange',
-                color: '#222'
-              });
-              $body.prepend($bar);
-            } else {
-              $msg.text('You are viewing the staging site. Everything is in sync, production is even with staging. 👌');
-              $bar.append($msg);
-              $bar.css({
-                backgroundColor: '#BAE9B8',
-                color: '#222'
-              });
-              $body.prepend($bar);
-            }
-          });
-        }
-      }
-      bar();
-    }
-
-    function conditionallyLoadJQuery() {
-      var jQuery = window.jQuery;
-      var protocol = '//';
-      if (window.location.href.includes('file://')) {
-        protocol = 'https://';
-      }
-      if (!(typeof jQuery !== 'undefined' && jQuery !== null)) {
-        var jQ = document.createElement('script');
-        jQ.type = 'text/javascript';
-        jQ.onload = jQ.onreadystatechange = init;
-        jQ.src = protocol + 'code.jquery.com/jquery-2.2.4.min.js';
-        return document.body.appendChild(jQ);
-      } else {
-        return init();
-      }
-    };
-
-    if (window.addEventListener) {
-      window.addEventListener('load', conditionallyLoadJQuery, false);
-    } else if (window.attachEvent) {
-      window.attachEvent('onload', conditionallyLoadJQuery);
-    }
-  }
+  // function trafficControl2 (opts) {
+  //
+  //   opts = opts || {}
+  //   opts.GH_API = opts.GH_API || 'https://api.github.com'
+  //   opts.stagingBranch = opts.stagingBranch || 'develop'
+  //   opts.productionBranch = opts.productionBranch || 'master'
+  //
+  //   if (opts.repo == null) {
+  //     throw new Error('You need to specify a repository.')
+  //   }
+  //
+  //   var body = document.getElementsByTagName('body')[0]
+  //   var bar = document.createElement('div')
+  //   bar.id = 'staging-bar'
+  //   bar.style.backgroundColor = '#eee'
+  //   bar.style.color = '#222'
+  //   bar.style.fontFamily = 'sans-serif'
+  //   bar.style.padding = '16px 8px'
+  //   bar.style.position = 'fixed'
+  //   bar.style.top = '0'
+  //   bar.style.width = '100%'
+  //   bar.innerText = 'Loading...'
+  //   body.insertBefore(bar, body.firstChild)
+  //
+  //   function init () {
+  //     var $ = window.$
+  //     var localStorage = window.localStorage
+  //     var netlify = window.netlify
+  //
+  //     var $body = $(body)
+  //     var $bar = $('#staging-bar')
+  //     var $msg = $('<div />')
+  //
+  //     function bar () {
+  //       if (!localStorage.gh_token) {
+  //         $bar.empty()
+  //         var $authBtn = $('<button>Authorize</button>')
+  //         $msg.text('You are viewing the staging site, but you cannot deploy or view changes until you authorize read/write access to your Github repository.')
+  //         $bar.append($msg)
+  //         $bar.css({
+  //           backgroundColor: '#E02D2D',
+  //           color: 'white'
+  //         })
+  //         $bar.append($authBtn)
+  //         $body.prepend($bar)
+  //         $authBtn.on('click', function () {
+  //           netlify.authenticate({ provider: 'github', scope: 'repo' }, function (err, data) {
+  //             if (err) {
+  //               console.log('Error authenticating: %s', err.message)
+  //             }
+  //             localStorage.gh_token = data.token
+  //             bar()
+  //           })
+  //         })
+  //       } else {
+  //         $.getJSON(opts.GH_API + '/repos/' + opts.repo + '/compare/' + opts.productionBranch + '...' + opts.stagingBranch + 'develop?access_token=' + localStorage.gh_token, function (data) {
+  //           $bar.empty()
+  //           var $deployBtn = $('<button>Deploy</button>')
+  //           if (data.status === 'ahead') {
+  //             var have = data.ahead_by > 1 ? 'have' : 'has'
+  //             var changes = data.ahead_by > 1 ? 'changes' : 'change'
+  //             $msg.html('You are viewing the staging site. There ' + have + ' been <a href="' + data.permalink_url + '" target="_blank">' + data.ahead_by + '</a> ' + changes + ' since the last production build. 🚢')
+  //             $bar.append($msg)
+  //             $bar.css({
+  //               backgroundColor: '#B8D5E9',
+  //               color: '#222'
+  //             })
+  //             $bar.append($deployBtn)
+  //             $body.prepend($bar)
+  //             $deployBtn.on('click', function () {
+  //               $.post(opts.GH_API + '/repos/' + opts.repo + '/merges?access_token=' + localStorage.gh_token, JSON.stringify({
+  //                 base: 'master',
+  //                 head: 'develop',
+  //                 commit_message: ':vertical_traffic_light: Production deploy triggered from traffic-control'
+  //               }), function () {
+  //                 bar()
+  //               })
+  //             })
+  //           } else if (data.status === 'diverged') {
+  //             var commits = data.behind_by > 1 ? 'commits' : 'commit'
+  //             $msg.html('You are viewing the staging site. Staging has diverged behind production by <a href="' + data.permalink_url + '" target="_blank">' + data.behind_by + '</a> ' + commits + '. Please rebase.')
+  //             $bar.append($msg)
+  //             $bar.css({
+  //               backgroundColor: 'orange',
+  //               color: '#222'
+  //             })
+  //             $body.prepend($bar)
+  //           } else {
+  //             $msg.text('You are viewing the staging site. Everything is in sync, production is even with staging. 👌')
+  //             $bar.append($msg)
+  //             $bar.css({
+  //               backgroundColor: '#BAE9B8',
+  //               color: '#222'
+  //             })
+  //             $body.prepend($bar)
+  //           }
+  //         })
+  //       }
+  //     }
+  //     bar()
+  //   }
+  //
+  //   function conditionallyLoadJQuery () {
+  //     var jQuery = window.jQuery
+  //     var protocol = '//'
+  //     if (window.location.href.includes('file://')) {
+  //       protocol = 'https://'
+  //     }
+  //     if (!(typeof jQuery !== 'undefined' && jQuery !== null)) {
+  //       var jQ = document.createElement('script')
+  //       jQ.type = 'text/javascript'
+  //       jQ.onload = jQ.onreadystatechange = init
+  //       jQ.src = protocol + 'code.jquery.com/jquery-2.2.4.min.js'
+  //       return document.body.appendChild(jQ)
+  //     } else {
+  //       return init()
+  //     }
+  //   };
+  //
+  //   if (window.addEventListener) {
+  //     window.addEventListener('load', conditionallyLoadJQuery, false)
+  //   } else if (window.attachEvent) {
+  //     window.attachEvent('onload', conditionallyLoadJQuery)
+  //   }
+  // }
 
   return trafficControl;
 

@@ -32,7 +32,7 @@ traffic-control .tc-bar {
 
 traffic-control.is-loading .tc-bar {
   background: #eee;
-  color: #ccc;
+  color: #aaa;
 }
 
 traffic-control .tc-bar.is-entering {
