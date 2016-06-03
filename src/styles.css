@@ -13,7 +13,7 @@ traffic-control *:after {
 
 traffic-control {
   position: fixed;
-  top: 0;
+  bottom: 0;
   left: 0;
   width: 100%;
   z-index: 10000;
@@ -35,8 +35,28 @@ traffic-control.is-loading .tc-bar {
   color: #aaa;
 }
 
+traffic-control.is-unauthorized .tc-bar {
+  background: #E02D2D;
+  color: #fff;
+}
+
+traffic-control.is-diverged .tc-bar {
+  background: #FFC72F;
+  color: #784E4E;
+}
+
+traffic-control.is-ahead .tc-bar {
+  background: #B8D5E9;
+  color: #505050;
+}
+
+traffic-control.is-synchronized .tc-bar {
+  background: #BAE9B8;
+  color: #505050;
+}
+
 traffic-control .tc-bar.is-entering {
-  animation: slideInDown .6s ease both;
+  animation: slideInUp .6s ease both;
 }
 
 traffic-control .tc-message {
@@ -52,6 +72,33 @@ traffic-control .tc-action {
   width: 100px;
 }
 
+traffic-control .tc-action--button {
+  margin: 0 auto;
+  width: 80%;
+  padding: 8px 0;
+  text-transform: uppercase;
+  color: #eee;
+  background: transparent;
+  border: 1px solid;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  overflow: hidden;
+  transition: .2s ease;
+}
+
+traffic-control.is-diverged .tc-action--button {
+  color: #BB8800;
+}
+
+traffic-control.is-ahead .tc-action--button {
+  color: #678BA3;
+}
+
+traffic-control.is-synchronized .tc-action--button {
+  color: #055402;
+}
+
 traffic-control .tc-close {
   display: table-cell;
   vertical-align: middle;
@@ -65,10 +112,39 @@ traffic-control.is-loading .tc-close {
   border-color: #ccc;
 }
 
+traffic-control.is-diverged .tc-close {
+  border-color: #FFDA77;
+}
+
+traffic-control.is-unauthorized .tc-close {
+  border-color: #ED5252;
+}
+
+traffic-control.is-ahead .tc-close {
+  border-color: #C4DEF0;
+}
+
+traffic-control.is-synchronized .tc-close {
+  border-color: #C6F5C4;
+}
+
 traffic-control .tc-message--text {
   font-size: 14px;
   position: relative;
   padding: 16px;
+  backface-visibility: hidden;
+}
+
+traffic-control .tc-message--text a {
+  font-weight: bold;
+}
+
+traffic-control.is-diverged .tc-message--text a {
+  color: #BB8800;
+}
+
+traffic-control.is-ahead .tc-message--text a {
+  color: #678BA3;
 }
 
 traffic-control .tc-message--loading {
@@ -81,32 +157,92 @@ traffic-control .tc-message--loading.is-entering {
   animation-delay: .3s;
 }
 
+traffic-control .tc-message--loading.is-leaving {
+  animation: bounceFadeOutRight .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+}
+
 traffic-control .tc-message--synchronized {
   display: none;
+}
+
+traffic-control .tc-message--synchronized.is-entering {
+  animation: bounceFadeInLeft .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+traffic-control .tc-message--synchronized.is-leaving {
+  animation: bounceFadeOutRight .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
 }
 
 traffic-control .tc-message--diverged {
   display: none;
 }
 
+traffic-control .tc-message--diverged.is-entering {
+  animation: bounceFadeInLeft .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+traffic-control .tc-message--diverged.is-leaving {
+  animation: bounceFadeOutRight .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+}
+
 traffic-control .tc-message--unauthorized {
   display: none;
+}
+
+traffic-control .tc-message--unauthorized.is-entering {
+  animation: bounceFadeInLeft .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+traffic-control .tc-message--unauthorized.is-leaving {
+  animation: bounceFadeOutRight .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
 }
 
 traffic-control .tc-message--ahead {
   display: none;
 }
 
+traffic-control .tc-message--ahead.is-entering {
+  animation: bounceFadeInLeft .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+traffic-control .tc-message--ahead.is-leaving {
+  animation: bounceFadeOutRight .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+}
+
 traffic-control .tc-action--deploy {
   display: none;
+}
+
+traffic-control .tc-action--deploy.is-entering {
+  animation: fadeIn .6s ease both;
+}
+
+traffic-control .tc-action--deploy.is-leaving {
+  animation: fadeOut .6s ease both;
 }
 
 traffic-control .tc-action--info {
   display: none;
 }
 
+traffic-control .tc-action--info.is-entering {
+  animation: fadeIn .6s ease both;
+}
+
+traffic-control .tc-action--info.is-leaving {
+  animation: fadeOut .6s ease both;
+}
+
 traffic-control .tc-action--authorize {
   display: none;
+}
+
+traffic-control .tc-action--authorize.is-entering {
+  animation: fadeIn .6s ease both;
+}
+
+traffic-control .tc-action--authorize.is-leaving {
+  animation: fadeOut .6s ease both;
 }
 
 traffic-control .tc-close--button {
@@ -128,8 +264,23 @@ traffic-control .tc-close--button {
 }
 
 traffic-control.is-loading .tc-close--button {
-  border-color: #ccc;
   color: #ccc;
+}
+
+traffic-control.is-diverged .tc-close--button {
+  color: #FFDA77;
+}
+
+traffic-control.is-unauthorized .tc-close--button {
+  color: #ED5252;
+}
+
+traffic-control.is-ahead .tc-close--button {
+  color: #C4DEF0;
+}
+
+traffic-control.is-synchronized .tc-close--button {
+  color: #C6F5C4;
 }
 
 traffic-control .tc-close--button.is-entering {
@@ -178,39 +329,87 @@ traffic-control .tc-close--button.is-active {
   display: block;
 }
 
-@keyframes bounceFadeInRight {
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
   0% {
     opacity: 0;
-    transform: translateX(100%);
-  }
-  50% {
-    opacity: 1;
-    transform: translateX(-25%);
   }
   100% {
     opacity: 1;
-    transform: translateX(0);
+  }
+}
+
+@keyframes bounceFadeInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(100%) skew(-10deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-25%) skew(10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) skew(0);
+  }
+}
+
+@keyframes bounceFadeOutLeft {
+  0% {
+    opacity: 1;
+    transform: translateX(0) skew(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(25%) skew(-10deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-100%) skew(10deg);
   }
 }
 
 @keyframes bounceFadeInLeft {
   0% {
     opacity: 0;
-    transform: translateX(-100%);
+    transform: translateX(-100%) skew(10deg);
   }
   50% {
     opacity: 1;
-    transform: translateX(25%);
+    transform: translateX(25%) skew(-10deg);
   }
   100% {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) skew(0);
   }
 }
 
-@keyframes slideInDown {
+@keyframes bounceFadeOutRight {
   0% {
-    transform: translateY(-100%)
+    opacity: 1;
+    transform: translateX(0) skew(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-25%) skew(10deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%) skew(-10deg);
+  }
+}
+
+@keyframes slideInUp {
+  0% {
+    transform: translateY(100%)
   }
   100% {
     transform: translateY(0)

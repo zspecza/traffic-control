@@ -16,7 +16,8 @@
     "rollup-plugin-node-resolve": "^1.5.0",
     "rollup-plugin-string": "^1.0.1",
     "rollup-plugin-uglify": "^0.3.1",
-    "snazzy": "^4.0.0"
+    "snazzy": "^4.0.0",
+    "whatwg-fetch": "^1.0.0"
   },
   "standard": {
     "ignore": [
@@ -35,6 +36,7 @@
     "lint": "snazzy",
     "build": "concurrently \"npm run build-dev\" \"npm run build-prod\" \"npm run build-min\"",
     "build-dev": "rollup --config rollup.config.dev.js",
+    "build-dev-test": "rollup --config rollup.config.dev-test.js",
     "build-min": "rollup --config rollup.config.minified.js",
     "build-prod": "rollup -c",
     "pretest": "npm run lint && npm run build",

@@ -2,6 +2,7 @@
 
 // animations: http://jsbin.com/ribivetuta/edit?css,js,output
 
+import 'whatwg-fetch'
 import assign from 'core-js/library/fn/object/assign'
 import initialMarkup from './template.html'
 import styles from './styles.css'
@@ -67,7 +68,7 @@ class TrafficControl {
   _getDefaultOpts () {
     return {
       stagingBranch: 'develop',
-      productionBrach: 'master',
+      productionBranch: 'master',
       ghAPI: 'https://api.github.com',
       containerEl: document.body
     }
@@ -111,6 +112,109 @@ class TrafficControl {
     })
     this.animateIn(this.els.loadingMsg)
     this.animateIn(this.els.closeBtn)
+    this._authenticateAndRenderState()
+  }
+
+  /**
+   * [_authenticateAndInitialize description]
+   * @return {[type]} [description]
+   */
+  _authenticateAndRenderState () {
+    const localStorage = window.localStorage
+    const netlify = window.netlify
+    if (!localStorage.gh_token) {
+      // fake some loading time
+      setTimeout(() => {
+        this.animateOut(this.els.loadingMsg, () => {
+          this.el.classList.remove('is-loading')
+          this.el.classList.add('is-unauthorized')
+          this.animateIn(this.els.unauthedMsg)
+          this.animateIn(this.els.authBtn)
+        })
+      }, 1500)
+      this.els.authBtn.addEventListener('click', () => {
+        netlify.authenticate({ provider: 'github', scope: 'repo' }, (error, data) => {
+          if (error) {
+            const msg = error.err ? error.err.message : error.message
+            throw new Error(`Error authenticating: ${msg}`)
+          }
+          localStorage.gh_token = data.token
+          this._authenticateAndRenderState()
+        })
+      }, false)
+    } else {
+      if (this.el.classList.contains('is-unauthorized')) {
+        setTimeout(() => {
+          this.animateOut(this.els.unauthedMsg, () => {
+            this.el.classList.remove('is-unauthorized')
+            this.el.classList.add('is-loading')
+            this.animateIn(this.els.loadingMsg)
+          })
+          this.animateOut(this.els.authBtn)
+        }, 500)
+      }
+      fetch(`
+        ${this.opts.ghAPI}/repos/
+        ${this.opts.repo}/compare/
+        ${this.opts.productionBranch}
+        ...${this.opts.stagingBranch}
+        ?access_token=${localStorage.gh_token}
+      `.replace(/\s+/g, ''))
+        .then((response) => response.json())
+        // TODO: remove this then block
+        .then((data) => {
+          data.status = ''
+          data.ahead_by = 25
+          return data
+        })
+        .then((data) => {
+          // a deploy is required
+          if (data.status === 'ahead') {
+            const have = data.ahead_by > 1 ? 'have' : 'has'
+            const changes = data.ahead_by > 1 ? 'changes' : 'change'
+            this.els.aheadMsg.innerHTML = `
+              You are viewing the staging site.
+              There ${have} been
+              <a href="${data.permalink_url}" target="_blank">${data.ahead_by}</a>
+              ${changes} since the last production build. 🚢
+            `
+            setTimeout(() => {
+              this.animateOut(this.els.loadingMsg, () => {
+                this.el.classList.remove('is-loading')
+                this.el.classList.add('is-ahead')
+                this.animateIn(this.els.aheadMsg)
+                this.animateIn(this.els.deployBtn)
+              })
+            }, 1500)
+          // a rebase is required
+          } else if (data.status === 'diverged') {
+            const commits = data.behind_by > 1 ? 'commits' : 'commit'
+            this.els.divergedMsg.innerHTML = `
+              You are viewing the staging site.
+              Staging has diverged behind production by
+              <a href="${data.permalink_url}" target="_blank">${data.behind_by}</a>
+              ${commits}. Please rebase.
+            `
+            setTimeout(() => {
+              this.animateOut(this.els.loadingMsg, () => {
+                this.el.classList.remove('is-loading')
+                this.el.classList.add('is-diverged')
+                this.animateIn(this.els.divergedMsg)
+                this.animateIn(this.els.infoBtn)
+              })
+            }, 1500)
+          // we're in-sync! hooray!
+          } else {
+            setTimeout(() => {
+              this.animateOut(this.els.loadingMsg, () => {
+                this.el.classList.remove('is-loading')
+                this.el.classList.add('is-synchronized')
+                this.animateIn(this.els.syncedMsg)
+              })
+            }, 1500)
+          }
+        })
+    }
   }
 
   /**
@@ -135,7 +239,7 @@ class TrafficControl {
    * @param  {[type]} after [description]
    * @return {[type]}       [description]
    */
-  animateIn (el, after, delay = 0) {
+  animateIn (el, after = () => {}) {
     let isAnimated = false
     const startCb = () => {
       isAnimated = true
@@ -144,16 +248,14 @@ class TrafficControl {
     el.addEventListener(animationStart, startCb, false)
     el.classList.add('is-active')
     el.classList.add('is-entering')
-    if (after && typeof after === 'function') {
-      if (isAnimated) {
-        const callAfter = () => {
-          setTimeout(after, delay)
-          el.removeEventListener(animationEnd, callAfter)
-        }
-        el.addEventListener(animationEnd, callAfter, false)
-      } else {
-        setTimeout(after, delay)
+    if (isAnimated) {
+      const callAfter = () => {
+        setTimeout(after, 0)
+        el.removeEventListener(animationEnd, callAfter)
       }
+      el.addEventListener(animationEnd, callAfter, false)
+    } else {
+      setTimeout(after, 0)
     }
   }
 
@@ -163,32 +265,32 @@ class TrafficControl {
    * @param  {[type]} after [description]
    * @return {[type]}       [description]
    */
-  animateOut (el, after, delay = 0) {
+  animateOut (el, after = () => {}) {
     let isAnimated = false
+    el.classList.remove('is-entering')
     const startCb = () => {
       isAnimated = true
       el.removeEventListener(animationStart, startCb)
     }
     el.addEventListener(animationStart, startCb, false)
-    el.classList.remove('is-entering')
-    el.classList.add('is-leaving')
-    if (isAnimated) {
-      const cb = () => {
-        el.classList.remove('is-leaving')
-        el.classList.remove('is-active')
-        if (after && typeof after === 'function') {
-          setTimeout(after, 200 + delay)
-        }
-        el.removeEventListener(animationEnd, cb)
-      }
-      el.addEventListener(animationEnd, cb, false)
-    } else {
+    const cb = () => {
       el.classList.remove('is-leaving')
       el.classList.remove('is-active')
-      if (after && typeof after === 'function') {
-        setTimeout(after, delay)
-      }
+      setTimeout(after, 200)
+      el.removeEventListener(animationEnd, cb)
     }
+    el.addEventListener(animationEnd, cb, false)
+    el.classList.add('is-leaving')
+    // delay prevents isAnimation check being called
+    // before isAnimation is resolved
+    // ...could be improved
+    setTimeout(() => {
+      if (!isAnimated) {
+        el.classList.remove('is-leaving')
+        el.classList.remove('is-active')
+        setTimeout(after, 0)
+      }
+    }, 50)
   }
 
 }
