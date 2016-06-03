@@ -1,0 +1,45 @@
+<div class="tc-bar">
+  <div class="tc-message">
+    <div class="tc-container">
+      <div class="tc-message--text tc-message--loading">
+        Loading...
+      </div>
+      <div class="tc-message--text tc-message--synchronized">
+        You are viewing the staging site.
+        Everything is in sync, production is even with staging. 👌
+      </div>
+      <div class="tc-message--text tc-message--ahead"></div>
+      <div class="tc-message--text tc-message--diverged"></div>
+      <div class="tc-message--text tc-message--unauthorized">
+        You are viewing the staging site,
+        but you cannot deploy or view changes
+        until you authorize read/write access
+        to your Github repository.
+      </div>
+    </div>
+  </div>
+  <div class="tc-action">
+    <div class="tc-container">
+      <button
+        class="tc-action--button tc-action--deploy"
+        aria-label="Perform a deployment to the production branch."
+      >Deploy</button>
+      <button
+        class="tc-action--button tc-action--authorize"
+        aria-label="Authorize traffic-control to access your Github account."
+      >Authorize</button>
+      <button
+        class="tc-action--button tc-action--info"
+        aria-label="Find out more information."
+      >How?</button>
+    </div>
+  </div>
+  <div class="tc-close">
+    <div class="tc-container">
+      <button
+        class="tc-close--button"
+        aria-label="Close traffic-control deployment user interface."
+      >&times;</button>
+    </div>
+  </div>
+</div>

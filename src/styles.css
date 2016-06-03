@@ -1,0 +1,218 @@
+/*
+  Note: there is a lot of repetition going on in this CSS.
+  This is intentional, in order to keep specificity low
+  enough that custom styles are easier to implement.
+ */
+
+traffic-control,
+traffic-control *,
+traffic-control *:before,
+traffic-control *:after {
+  box-sizing: border-box;
+}
+
+traffic-control {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10000;
+}
+
+traffic-control .tc-bar {
+  display: none;
+  width: 100%;
+  height: 100%;
+  table-layout: fixed;
+  font-family: sans-serif;
+  background: #fff;
+  color: #000;
+  transition: all .2s ease;
+}
+
+traffic-control.is-loading .tc-bar {
+  background: #eee;
+  color: #ccc;
+}
+
+traffic-control .tc-bar.is-entering {
+  animation: slideInDown .6s ease both;
+}
+
+traffic-control .tc-message {
+  display: table-cell;
+  vertical-align: middle;
+  height: 100%;
+}
+
+traffic-control .tc-action {
+  display: table-cell;
+  vertical-align: middle;
+  height: 100%;
+  width: 100px;
+}
+
+traffic-control .tc-close {
+  display: table-cell;
+  vertical-align: middle;
+  height: 100%;
+  width: 60px;
+  border-left: 1px solid #eee;
+  transition: all .2s ease;
+}
+
+traffic-control.is-loading .tc-close {
+  border-color: #ccc;
+}
+
+traffic-control .tc-message--text {
+  font-size: 14px;
+  position: relative;
+  padding: 16px;
+}
+
+traffic-control .tc-message--loading {
+  display: none;
+  opacity: 0;
+}
+
+traffic-control .tc-message--loading.is-entering {
+  animation: bounceFadeInLeft .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+  animation-delay: .3s;
+}
+
+traffic-control .tc-message--synchronized {
+  display: none;
+}
+
+traffic-control .tc-message--diverged {
+  display: none;
+}
+
+traffic-control .tc-message--unauthorized {
+  display: none;
+}
+
+traffic-control .tc-message--ahead {
+  display: none;
+}
+
+traffic-control .tc-action--deploy {
+  display: none;
+}
+
+traffic-control .tc-action--info {
+  display: none;
+}
+
+traffic-control .tc-action--authorize {
+  display: none;
+}
+
+traffic-control .tc-close--button {
+  display: none;
+  margin: 0 auto;
+  padding: 16px;
+  width: 100%;
+  border: none;
+  outline: none;
+  background: none;
+  color: #eee;
+  font-size: 24px;
+  font-family: Arial, sans-serif;
+  cursor: pointer;
+  height: 100%;
+  position: relative;
+  transition: all .2s ease;
+  text-align: center;
+}
+
+traffic-control.is-loading .tc-close--button {
+  border-color: #ccc;
+  color: #ccc;
+}
+
+traffic-control .tc-close--button.is-entering {
+  animation: bounceFadeInRight .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+  animation-delay: .3s;
+}
+
+traffic-control .tc-bar.is-active {
+  display: table;
+}
+
+traffic-control .tc-message--loading.is-active {
+  display: block;
+  opacity: 1;
+}
+
+traffic-control .tc-message--synchronized.is-active {
+  display: block;
+}
+
+traffic-control .tc-message--diverged.is-active {
+  display: block;
+}
+
+traffic-control .tc-message--unauthorized.is-active {
+  display: block;
+}
+
+traffic-control .tc-message--ahead.is-active {
+  display: block;
+}
+
+traffic-control .tc-action--deploy.is-active {
+  display: block;
+}
+
+traffic-control .tc-action--info.is-active {
+  display: block;
+}
+
+traffic-control .tc-action--authorize.is-active {
+  display: block;
+}
+
+traffic-control .tc-close--button.is-active {
+  display: block;
+}
+
+@keyframes bounceFadeInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-25%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bounceFadeInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(25%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInDown {
+  0% {
+    transform: translateY(-100%)
+  }
+  100% {
+    transform: translateY(0)
+  }
+}

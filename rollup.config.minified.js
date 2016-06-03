@@ -2,6 +2,9 @@
 
 import babel from 'rollup-plugin-babel'
 import uglify from 'rollup-plugin-uglify'
+import string from 'rollup-plugin-string'
+import commonjs from 'rollup-plugin-commonjs'
+import nodeResolve from 'rollup-plugin-node-resolve'
 
 export default {
   entry: 'src/traffic-control.js',
@@ -10,10 +13,12 @@ export default {
   moduleName: 'trafficControl',
   moduleId: 'trafficControl',
   plugins: [
+    string({ extensions: ['html', 'css'] }),
     babel({
-      exclude: 'node_modules/**',
       presets: 'es2015-rollup'
     }),
+    nodeResolve({ browser: true }),
+    commonjs(),
     uglify()
   ]
 }
