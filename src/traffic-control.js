@@ -8,45 +8,6 @@ import initialMarkup from './template.html'
 import styles from './styles.css'
 
 /**
- * [trafficControl description]
- * @param  {[type]} opts [description]
- * @return {[type]}      [description]
- */
-export default function trafficControl (opts) {
-  let netlify = window.netlify
-
-  /**
-   * [description]
-   * @return {[type]} [description]
-   */
-  const init = () => {
-    return new TrafficControl(opts)
-  }
-
-  /**
-   * [description]
-   * @return {[type]} [description]
-   */
-  const conditionallyLoadNetlify = () => {
-    if (netlify == null) {
-      const script = document.createElement('script')
-      script.type = 'text/javascript'
-      script.onload = script.onreadystatechange = init
-      script.src = 'https://app.netlify.com/authentication.js'
-      return document.body.appendChild(script)
-    } else {
-      return init()
-    }
-  }
-
-  if (window.addEventListener) {
-    window.addEventListener('load', conditionallyLoadNetlify, false)
-  } else if (window.attachEvent) {
-    window.attachEvent('onload', conditionallyLoadNetlify)
-  }
-}
-
-/**
  *
  */
 class TrafficControl {
@@ -57,6 +18,9 @@ class TrafficControl {
    */
   constructor (opts = {}) {
     this.opts = assign({}, this._getDefaultOpts(), opts)
+    this.opts.repoURL = `${this.opts.ghAPI}/repos/${this.opts.repo}`
+    this.opts.compareURL = `${this.opts.repoURL}/compare`
+    this.opts.compareBranchesURL = `${this.opts.compareURL}/${this.opts.productionBranch}...${this.opts.stagingBranch}`
     this._validateOpts(this.opts)
     this._init()
   }
@@ -90,29 +54,61 @@ class TrafficControl {
    * @return {[type]} [description]
    */
   _init () {
-    this._addCss(styles)
+    addCss(styles)
+    this._initializeElementWithMarkup()
+    this._instantiateElementWithDefaultState()
+    this._authenticateAndRenderState()
+  }
+
+  /**
+   * [_initializeElementWithMarkup description]
+   * @return {[type]} [description]
+   */
+  _initializeElementWithMarkup () {
     this.el = document.createElement('traffic-control')
     this.el.id = 'traffic-control'
     this.el.innerHTML = initialMarkup
-    this.els = {
-      bar: this.el.getElementsByClassName('tc-bar')[0],
-      loadingMsg: this.el.getElementsByClassName('tc-message--loading')[0],
-      syncedMsg: this.el.getElementsByClassName('tc-message--synchronized')[0],
-      aheadMsg: this.el.getElementsByClassName('tc-message--ahead')[0],
-      divergedMsg: this.el.getElementsByClassName('tc-message--diverged')[0],
-      unauthedMsg: this.el.getElementsByClassName('tc-message--unauthorized')[0],
-      deployBtn: this.el.getElementsByClassName('tc-action--deploy')[0],
-      authBtn: this.el.getElementsByClassName('tc-action--authorize')[0],
-      infoBtn: this.el.getElementsByClassName('tc-action--info')[0],
-      closeBtn: this.el.getElementsByClassName('tc-close--button')[0]
-    }
-    this.opts.containerEl.appendChild(this.el)
-    this.animateIn(this.els.bar, () => {
-      this.el.classList.add('is-loading')
+    this.els = this._getDOMReferences({
+      bar: 'tc-bar',
+      loadingMsg: 'tc-message--loading',
+      syncedMsg: 'tc-message--synchronized',
+      aheadMsg: 'tc-message--ahead',
+      divergedMsg: 'tc-message--diverged',
+      unauthedMsg: 'tc-message--unauthorized',
+      deployBtn: 'tc-action--deploy',
+      authBtn: 'tc-action--authorize',
+      infoBtn: 'tc-action--info',
+      closeBtn: 'tc-close--button'
     })
-    this.animateIn(this.els.loadingMsg)
-    this.animateIn(this.els.closeBtn)
-    this._authenticateAndRenderState()
+  }
+
+  /**
+   * [_referenceInnerDOM description]
+   * @param  {[type]} classes [description]
+   * @return {[type]}         [description]
+   */
+  _getDOMReferences (classes) {
+    let o = {}
+    for (let el in classes) {
+      if (classes.hasOwnProperty(el)) {
+        o[el] = this.el.getElementsByClassName(classes[el])[0]
+      }
+    }
+    return o
+  }
+
+  /**
+   * [_instantiateElement description]
+   * @return {[type]} [description]
+   */
+  _instantiateElementWithDefaultState () {
+    this.opts.containerEl.appendChild(this.el)
+    this.animateIn(
+      this.els.bar,
+      this.els.loadingMsg,
+      this.els.closeBtn,
+      () => addClass(this.el, 'is-loading')
+    )
   }
 
   /**
@@ -126,13 +122,12 @@ class TrafficControl {
       // fake some loading time
       setTimeout(() => {
         this.animateOut(this.els.loadingMsg, () => {
-          this.el.classList.remove('is-loading')
-          this.el.classList.add('is-unauthorized')
-          this.animateIn(this.els.unauthedMsg)
-          this.animateIn(this.els.authBtn)
+          removeClass(this.el, 'is-loading')
+          addClass(this.el, 'is-unauthorized')
+          this.animateIn(this.els.unauthedMsg, this.els.authBtn)
         })
       }, 1500)
-      this.els.authBtn.addEventListener('click', () => {
+      on(this.els.authBtn, 'click', () => {
         netlify.authenticate({ provider: 'github', scope: 'repo' }, (error, data) => {
           if (error) {
             const msg = error.err ? error.err.message : error.message
@@ -141,32 +136,19 @@ class TrafficControl {
           localStorage.gh_token = data.token
           this._authenticateAndRenderState()
         })
-      }, false)
+      })
     } else {
-      if (this.el.classList.contains('is-unauthorized')) {
+      if (hasClass(this.el, 'is-unauthorized')) {
         setTimeout(() => {
-          this.animateOut(this.els.unauthedMsg, () => {
-            this.el.classList.remove('is-unauthorized')
-            this.el.classList.add('is-loading')
+          this.animateOut(this.els.unauthedMsg, this.els.authBtn, () => {
+            removeClass(this.el, 'is-unauthorized')
+            addClass(this.el, 'is-loading')
             this.animateIn(this.els.loadingMsg)
           })
-          this.animateOut(this.els.authBtn)
         }, 500)
       }
-      fetch(`
-        ${this.opts.ghAPI}/repos/
-        ${this.opts.repo}/compare/
-        ${this.opts.productionBranch}
-        ...${this.opts.stagingBranch}
-        ?access_token=${localStorage.gh_token}
-      `.replace(/\s+/g, ''))
+      fetch(`${this.opts.compareBranchesURL}?access_token=${localStorage.gh_token}`)
         .then((response) => response.json())
-        // TODO: remove this then block
-        .then((data) => {
-          data.status = ''
-          data.ahead_by = 25
-          return data
-        })
         .then((data) => {
           // a deploy is required
           if (data.status === 'ahead') {
@@ -180,10 +162,9 @@ class TrafficControl {
             `
             setTimeout(() => {
               this.animateOut(this.els.loadingMsg, () => {
-                this.el.classList.remove('is-loading')
-                this.el.classList.add('is-ahead')
-                this.animateIn(this.els.aheadMsg)
-                this.animateIn(this.els.deployBtn)
+                removeClass(this.el, 'is-loading')
+                addClass(this.el, 'is-ahead')
+                this.animateIn(this.els.aheadMsg, this.els.deployBtn)
               })
             }, 1500)
           // a rebase is required
@@ -197,18 +178,17 @@ class TrafficControl {
             `
             setTimeout(() => {
               this.animateOut(this.els.loadingMsg, () => {
-                this.el.classList.remove('is-loading')
-                this.el.classList.add('is-diverged')
-                this.animateIn(this.els.divergedMsg)
-                this.animateIn(this.els.infoBtn)
+                removeClass(this.el, 'is-loading')
+                addClass(this.el, 'is-diverged')
+                this.animateIn(this.els.divergedMsg, this.els.infoBtn)
               })
             }, 1500)
           // we're in-sync! hooray!
           } else {
             setTimeout(() => {
               this.animateOut(this.els.loadingMsg, () => {
-                this.el.classList.remove('is-loading')
-                this.el.classList.add('is-synchronized')
+                removeClass(this.el, 'is-loading')
+                addClass(this.el, 'is-synchronized')
                 this.animateIn(this.els.syncedMsg)
               })
             }, 1500)
@@ -218,44 +198,26 @@ class TrafficControl {
   }
 
   /**
-   * [_addCss description]
-   * @param {[type]} css [description]
-   */
-  _addCss (css) {
-    const style = document.createElement('style')
-    const head = document.head || document.getElementsByTagName('head')[0]
-    style.type = 'text/css'
-    if (style.styleSheet) {
-      style.styleSheet.cssText = css
-    } else {
-      style.appendChild(document.createTextNode(css))
-    }
-    head.appendChild(style)
-  }
-
-  /**
    * [animateIn description]
    * @param  {[type]} el    [description]
    * @param  {[type]} after [description]
    * @return {[type]}       [description]
    */
-  animateIn (el, after = () => {}) {
-    let isAnimated = false
-    const startCb = () => {
-      isAnimated = true
-      el.removeEventListener(animationStart, startCb)
+  animateIn (...els) {
+    let after = () => {}
+    if (typeof els[els.length - 1] === 'function') {
+      after = els.pop()
     }
-    el.addEventListener(animationStart, startCb, false)
-    el.classList.add('is-active')
-    el.classList.add('is-entering')
-    if (isAnimated) {
-      const callAfter = () => {
+    for (let i = 0, len = els.length; i < len; i++) {
+      let el = els[i]
+      let isAnimated = false
+      once(el, animationStart, () => isAnimated = true)
+      addClassesInSequence(el, 'is-active', 'is-entering')
+      if (isAnimated) {
+        once(el, animationEnd, () => setTimeout(after, 0))
+      } else {
         setTimeout(after, 0)
-        el.removeEventListener(animationEnd, callAfter)
       }
-      el.addEventListener(animationEnd, callAfter, false)
-    } else {
-      setTimeout(after, 0)
     }
   }
 
@@ -265,34 +227,134 @@ class TrafficControl {
    * @param  {[type]} after [description]
    * @return {[type]}       [description]
    */
-  animateOut (el, after = () => {}) {
-    let isAnimated = false
-    el.classList.remove('is-entering')
-    const startCb = () => {
-      isAnimated = true
-      el.removeEventListener(animationStart, startCb)
+  animateOut (...els) {
+    let after = () => {}
+    if (typeof els[els.length - 1] === 'function') {
+      after = els.pop()
     }
-    el.addEventListener(animationStart, startCb, false)
-    const cb = () => {
-      el.classList.remove('is-leaving')
-      el.classList.remove('is-active')
-      setTimeout(after, 200)
-      el.removeEventListener(animationEnd, cb)
+    for (let i = 0, len = els.length; i < len; i++) {
+      let el = els[i]
+      let isAnimated = false
+      removeClass(el, 'is-entering')
+      once(el, animationStart, () => isAnimated = true)
+      once(el, animationEnd, () => {
+        removeClassesInSequence(el, 'is-leaving', 'is-active')
+        setTimeout(after, 200)
+      })
+      addClass(el, 'is-leaving')
+      // delay prevents isAnimation check being called before isAnimation is resolved... could be improved
+      setTimeout(() => {
+        if (!isAnimated) {
+          removeClassesInSequence(el, 'is-leaving', 'is-active')
+          setTimeout(after, 0)
+        }
+      }, 50)
     }
-    el.addEventListener(animationEnd, cb, false)
-    el.classList.add('is-leaving')
-    // delay prevents isAnimation check being called
-    // before isAnimation is resolved
-    // ...could be improved
-    setTimeout(() => {
-      if (!isAnimated) {
-        el.classList.remove('is-leaving')
-        el.classList.remove('is-active')
-        setTimeout(after, 0)
-      }
-    }, 50)
   }
 
+}
+
+/**
+ * [_addCss description]
+ * @param {[type]} css [description]
+ */
+function addCss (css) {
+  const style = document.createElement('style')
+  const head = document.head || document.getElementsByTagName('head')[0]
+  style.type = 'text/css'
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css
+  } else {
+    style.appendChild(document.createTextNode(css))
+  }
+  head.appendChild(style)
+}
+
+/**
+ * [hasClass description]
+ * @param  {[type]}  el            [description]
+ * @param  {[type]}  ...classNames [description]
+ * @return {Boolean}               [description]
+ */
+function hasClass (el, ...classNames) {
+  return el.classList.contains(...classNames)
+}
+
+/**
+ * [addClass description]
+ * @param {[type]} el            [description]
+ * @param {[type]} ...classNames [description]
+ */
+function addClass (el, ...classNames) {
+  el.classList.add(...classNames)
+}
+
+/**
+ * [addClassesInSequence description]
+ * @param {[type]} el            [description]
+ * @param {[type]} ...classNames [description]
+ */
+function addClassesInSequence (el, ...classNames) {
+  for (let i = 0, len = classNames.length; i < len; i++) {
+    addClass(el, classNames[i])
+  }
+}
+
+/**
+ * [removeClass description]
+ * @param  {[type]} el            [description]
+ * @param  {[type]} ...classNames [description]
+ * @return {[type]}               [description]
+ */
+function removeClass (el, ...classNames) {
+  el.classList.remove(...classNames)
+}
+
+/**
+ * [addClassesInSequence description]
+ * @param {[type]} el            [description]
+ * @param {[type]} ...classNames [description]
+ */
+function removeClassesInSequence (el, ...classNames) {
+  for (let i = 0, len = classNames.length; i < len; i++) {
+    removeClass(el, classNames[i])
+  }
+}
+
+/**
+ * [on description]
+ * @param  {[type]} el        [description]
+ * @param  {[type]} eventName [description]
+ * @param  {[type]} func      [description]
+ * @return {[type]}           [description]
+ */
+function on (el, eventName, func) {
+  el.addEventListener(eventName, func, false)
+}
+
+/**
+ * [off description]
+ * @param  {[type]} el        [description]
+ * @param  {[type]} eventName [description]
+ * @param  {[type]} func      [description]
+ * @return {[type]}           [description]
+ */
+function off (el, eventName, func) {
+  el.removeEventListener(eventName, func)
+}
+
+/**
+ * [addOneEventListener description]
+ * @param {[type]} el        [description]
+ * @param {[type]} eventName [description]
+ * @param {[type]} func      [description]
+ */
+function once (el, eventName, func) {
+  const cb = (...args) => {
+    func(...args)
+    off(el, eventName, cb)
+  }
+  on(el, eventName, cb)
 }
 
 /**
@@ -336,6 +398,45 @@ var animationStart = (() => {
     }
   }
 })()
+
+/**
+ * [trafficControl description]
+ * @param  {[type]} opts [description]
+ * @return {[type]}      [description]
+ */
+export default function trafficControl (opts) {
+  let netlify = window.netlify
+
+  /**
+   * [description]
+   * @return {[type]} [description]
+   */
+  const init = () => {
+    return new TrafficControl(opts)
+  }
+
+  /**
+   * [description]
+   * @return {[type]} [description]
+   */
+  const conditionallyLoadNetlify = () => {
+    if (netlify == null) {
+      const script = document.createElement('script')
+      script.type = 'text/javascript'
+      script.onload = script.onreadystatechange = init
+      script.src = 'https://app.netlify.com/authentication.js'
+      return document.body.appendChild(script)
+    } else {
+      return init()
+    }
+  }
+
+  if (window.addEventListener) {
+    window.addEventListener('load', conditionallyLoadNetlify, false)
+  } else if (window.attachEvent) {
+    window.attachEvent('onload', conditionallyLoadNetlify)
+  }
+}
 
 // function trafficControl2 (opts) {
 //
