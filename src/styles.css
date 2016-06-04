@@ -23,16 +23,23 @@ traffic-control .tc-bar {
   display: none;
   width: 100%;
   height: 100%;
+  overflow: hidden;
   table-layout: fixed;
   font-family: sans-serif;
-  background: #fff;
-  color: #000;
+  background: #eee;
+  color: #aaa;
   transition: all .2s ease;
+  min-height: 60px;
 }
 
 traffic-control.is-loading .tc-bar {
   background: #eee;
   color: #aaa;
+}
+
+traffic-control.is-instruction .tc-bar {
+  background: #333;
+  color: #fff;
 }
 
 traffic-control.is-unauthorized .tc-bar {
@@ -116,6 +123,10 @@ traffic-control.is-diverged .tc-close {
   border-color: #FFDA77;
 }
 
+traffic-control.is-instruction .tc-close {
+  border-color: #888;
+}
+
 traffic-control.is-unauthorized .tc-close {
   border-color: #ED5252;
 }
@@ -149,16 +160,34 @@ traffic-control.is-ahead .tc-message--text a {
 
 traffic-control .tc-message--loading {
   display: none;
-  opacity: 0;
+}
+
+traffic-control .tc-message--loading:after {
+  margin-left: -2px;
+  content: ' ';
+  animation: ellipsis 1s linear infinite;
 }
 
 traffic-control .tc-message--loading.is-entering {
-  animation: bounceFadeInLeft .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+  animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
   animation-delay: .3s;
 }
 
 traffic-control .tc-message--loading.is-leaving {
-  animation: bounceFadeOutRight .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+  animation: slideOutUp .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+}
+
+traffic-control .tc-message--instruction {
+  display: none;
+  font-family: monospace;
+}
+
+traffic-control .tc-message--instruction.is-entering {
+  animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+traffic-control .tc-message--instruction.is-leaving {
+  animation: slideOutUp .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
 }
 
 traffic-control .tc-message--synchronized {
@@ -166,11 +195,11 @@ traffic-control .tc-message--synchronized {
 }
 
 traffic-control .tc-message--synchronized.is-entering {
-  animation: bounceFadeInLeft .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+  animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
 }
 
 traffic-control .tc-message--synchronized.is-leaving {
-  animation: bounceFadeOutRight .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+  animation: slideOutUp .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
 }
 
 traffic-control .tc-message--diverged {
@@ -178,11 +207,11 @@ traffic-control .tc-message--diverged {
 }
 
 traffic-control .tc-message--diverged.is-entering {
-  animation: bounceFadeInLeft .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+  animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
 }
 
 traffic-control .tc-message--diverged.is-leaving {
-  animation: bounceFadeOutRight .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+  animation: slideOutUp .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
 }
 
 traffic-control .tc-message--unauthorized {
@@ -190,11 +219,11 @@ traffic-control .tc-message--unauthorized {
 }
 
 traffic-control .tc-message--unauthorized.is-entering {
-  animation: bounceFadeInLeft .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+  animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
 }
 
 traffic-control .tc-message--unauthorized.is-leaving {
-  animation: bounceFadeOutRight .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+  animation: slideOutUp .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
 }
 
 traffic-control .tc-message--ahead {
@@ -202,11 +231,11 @@ traffic-control .tc-message--ahead {
 }
 
 traffic-control .tc-message--ahead.is-entering {
-  animation: bounceFadeInLeft .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+  animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
 }
 
 traffic-control .tc-message--ahead.is-leaving {
-  animation: bounceFadeOutRight .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+  animation: slideOutUp .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
 }
 
 traffic-control .tc-action--deploy {
@@ -214,11 +243,23 @@ traffic-control .tc-action--deploy {
 }
 
 traffic-control .tc-action--deploy.is-entering {
-  animation: fadeIn .6s ease both;
+  animation: slideInUp .6s ease both;
 }
 
 traffic-control .tc-action--deploy.is-leaving {
-  animation: fadeOut .6s ease both;
+  animation: slideOutUp .6s ease both;
+}
+
+traffic-control .tc-action--ok {
+  display: none;
+}
+
+traffic-control .tc-action--ok.is-entering {
+  animation: slideInUp .6s ease both;
+}
+
+traffic-control .tc-action--ok.is-leaving {
+  animation: slideOutUp .6s ease both;
 }
 
 traffic-control .tc-action--info {
@@ -226,11 +267,11 @@ traffic-control .tc-action--info {
 }
 
 traffic-control .tc-action--info.is-entering {
-  animation: fadeIn .6s ease both;
+  animation: slideInUp .6s ease both;
 }
 
 traffic-control .tc-action--info.is-leaving {
-  animation: fadeOut .6s ease both;
+  animation: slideOutUp .6s ease both;
 }
 
 traffic-control .tc-action--authorize {
@@ -238,11 +279,11 @@ traffic-control .tc-action--authorize {
 }
 
 traffic-control .tc-action--authorize.is-entering {
-  animation: fadeIn .6s ease both;
+  animation: slideInUp .6s ease both;
 }
 
 traffic-control .tc-action--authorize.is-leaving {
-  animation: fadeOut .6s ease both;
+  animation: slideOutUp .6s ease both;
 }
 
 traffic-control .tc-close--button {
@@ -271,6 +312,10 @@ traffic-control.is-diverged .tc-close--button {
   color: #FFDA77;
 }
 
+traffic-control.is-instruction .tc-close--button {
+  color: #888;
+}
+
 traffic-control.is-unauthorized .tc-close--button {
   color: #ED5252;
 }
@@ -284,8 +329,12 @@ traffic-control.is-synchronized .tc-close--button {
 }
 
 traffic-control .tc-close--button.is-entering {
-  animation: bounceFadeInRight .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+  animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
   animation-delay: .3s;
+}
+
+traffic-control .tc-close--button.is-leaving {
+  animation: slideOutUp .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
 }
 
 traffic-control .tc-bar.is-active {
@@ -294,7 +343,6 @@ traffic-control .tc-bar.is-active {
 
 traffic-control .tc-message--loading.is-active {
   display: block;
-  opacity: 1;
 }
 
 traffic-control .tc-message--synchronized.is-active {
@@ -309,11 +357,19 @@ traffic-control .tc-message--unauthorized.is-active {
   display: block;
 }
 
+traffic-control .tc-message--instruction.is-active {
+  display: block;
+}
+
 traffic-control .tc-message--ahead.is-active {
   display: block;
 }
 
 traffic-control .tc-action--deploy.is-active {
+  display: block;
+}
+
+traffic-control .tc-action--ok.is-active {
   display: block;
 }
 
@@ -329,89 +385,39 @@ traffic-control .tc-close--button.is-active {
   display: block;
 }
 
-@keyframes fadeOut {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes bounceFadeInRight {
-  0% {
-    opacity: 0;
-    transform: translateX(100%) skew(-10deg);
-  }
-  50% {
-    opacity: 1;
-    transform: translateX(-25%) skew(10deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0) skew(0);
-  }
-}
-
-@keyframes bounceFadeOutLeft {
-  0% {
-    opacity: 1;
-    transform: translateX(0) skew(0);
-  }
-  50% {
-    opacity: 1;
-    transform: translateX(25%) skew(-10deg);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-100%) skew(10deg);
-  }
-}
-
-@keyframes bounceFadeInLeft {
-  0% {
-    opacity: 0;
-    transform: translateX(-100%) skew(10deg);
-  }
-  50% {
-    opacity: 1;
-    transform: translateX(25%) skew(-10deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0) skew(0);
-  }
-}
-
-@keyframes bounceFadeOutRight {
-  0% {
-    opacity: 1;
-    transform: translateX(0) skew(0);
-  }
-  50% {
-    opacity: 1;
-    transform: translateX(-25%) skew(10deg);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(100%) skew(-10deg);
-  }
-}
-
 @keyframes slideInUp {
   0% {
-    transform: translateY(100%)
+    transform: translateY(100%);
+    opacity: 0;
   }
   100% {
-    transform: translateY(0)
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutUp {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes ellipsis {
+  0% {
+    content: ' '
+  }
+  33% {
+    content: '.'
+  }
+  66% {
+    content: '..'
+  }
+  99% {
+    content: '...'
   }
 }

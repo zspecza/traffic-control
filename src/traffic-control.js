@@ -1,9 +1,11 @@
 'use strict'
 
-// animations: http://jsbin.com/ribivetuta/edit?css,js,output
-
+/* polyfills */
 import 'whatwg-fetch'
-import assign from 'core-js/library/fn/object/assign'
+import 'core-js/fn/object/assign'
+import 'core-js/fn/promise'
+
+/* component HTML & css */
 import initialMarkup from './template.html'
 import styles from './styles.css'
 
@@ -17,7 +19,7 @@ class TrafficControl {
    * @return {[type]}      [description]
    */
   constructor (opts = {}) {
-    this.opts = assign({}, this._getDefaultOpts(), opts)
+    this.opts = Object.assign({}, this._getDefaultOpts(), opts)
     this.opts.repoURL = `${this.opts.ghAPI}/repos/${this.opts.repo}`
     this.opts.compareURL = `${this.opts.repoURL}/compare`
     this.opts.compareBranchesURL = `${this.opts.compareURL}/${this.opts.productionBranch}...${this.opts.stagingBranch}`
@@ -68,6 +70,20 @@ class TrafficControl {
     this.el = document.createElement('traffic-control')
     this.el.id = 'traffic-control'
     this.el.innerHTML = initialMarkup
+    this._addDomRefs()
+    this.els.instructionMsg.innerHTML = `
+      git checkout ${this.opts.stagingBranch} &&
+      git pull -r origin ${this.opts.productionBranch} &&
+      git push origin ${this.opts.stagingBranch}
+    `
+    this._addEventHooks()
+    this._addStates()
+  }
+
+  /**
+   * [_addDomRefs description]
+   */
+  _addDomRefs () {
     this.els = this._getDOMReferences({
       bar: 'tc-bar',
       loadingMsg: 'tc-message--loading',
@@ -75,11 +91,44 @@ class TrafficControl {
       aheadMsg: 'tc-message--ahead',
       divergedMsg: 'tc-message--diverged',
       unauthedMsg: 'tc-message--unauthorized',
+      instructionMsg: 'tc-message--instruction',
       deployBtn: 'tc-action--deploy',
       authBtn: 'tc-action--authorize',
       infoBtn: 'tc-action--info',
+      okBtn: 'tc-action--ok',
       closeBtn: 'tc-close--button'
     })
+  }
+
+  /**
+   * [_addEventHooks description]
+   */
+  _addEventHooks () {
+    on(this.els.infoBtn, 'click', () => {
+      delay(0)
+        .then(this._unRenderState('diverged'))
+        .then(this._renderState('instruction'))
+    })
+    on(this.els.okBtn, 'click', () => {
+      delay(0)
+        .then(this._unRenderState('instruction'))
+        .then(this._renderState('diverged'))
+    })
+  }
+
+  /**
+   * [_addStates description]
+   */
+  _addStates () {
+    this.states = {
+      mounted: [this.els.bar],
+      loading: [this.els.loadingMsg, this.els.closeBtn],
+      unauthorized: [this.els.unauthedMsg, this.els.authBtn, this.els.closeBtn],
+      ahead: [this.els.aheadMsg, this.els.deployBtn, this.els.closeBtn],
+      diverged: [this.els.divergedMsg, this.els.infoBtn, this.els.closeBtn],
+      synchronized: [this.els.syncedMsg, this.els.closeBtn],
+      instruction: [this.els.instructionMsg, this.els.okBtn, this.els.closeBtn]
+    }
   }
 
   /**
@@ -103,12 +152,9 @@ class TrafficControl {
    */
   _instantiateElementWithDefaultState () {
     this.opts.containerEl.appendChild(this.el)
-    this.animateIn(
-      this.els.bar,
-      this.els.loadingMsg,
-      this.els.closeBtn,
-      () => addClass(this.el, 'is-loading')
-    )
+    delay(0)
+      .then(this._renderState('mounted'))
+      .then(this._renderState('loading'))
   }
 
   /**
@@ -120,13 +166,9 @@ class TrafficControl {
     const netlify = window.netlify
     if (!localStorage.gh_token) {
       // fake some loading time
-      setTimeout(() => {
-        this.animateOut(this.els.loadingMsg, () => {
-          removeClass(this.el, 'is-loading')
-          addClass(this.el, 'is-unauthorized')
-          this.animateIn(this.els.unauthedMsg, this.els.authBtn)
-        })
-      }, 1500)
+      delay(1500)
+        .then(this._unRenderState('loading'))
+        .then(this._renderState('unauthorized'))
       on(this.els.authBtn, 'click', () => {
         netlify.authenticate({ provider: 'github', scope: 'repo' }, (error, data) => {
           if (error) {
@@ -139,62 +181,89 @@ class TrafficControl {
       })
     } else {
       if (hasClass(this.el, 'is-unauthorized')) {
-        setTimeout(() => {
-          this.animateOut(this.els.unauthedMsg, this.els.authBtn, () => {
-            removeClass(this.el, 'is-unauthorized')
-            addClass(this.el, 'is-loading')
-            this.animateIn(this.els.loadingMsg)
-          })
-        }, 500)
+        delay(500)
+          .then(this._unRenderState('unauthorized'))
+          .then(this._renderState('loading'))
       }
       fetch(`${this.opts.compareBranchesURL}?access_token=${localStorage.gh_token}`)
-        .then((response) => response.json())
-        .then((data) => {
+        .then((r) => r.json())
+        .then(({ status, ahead_by, behind_by, permalink_url }) => {
           // a deploy is required
-          if (data.status === 'ahead') {
-            const have = data.ahead_by > 1 ? 'have' : 'has'
-            const changes = data.ahead_by > 1 ? 'changes' : 'change'
-            this.els.aheadMsg.innerHTML = `
-              You are viewing the staging site.
-              There ${have} been
-              <a href="${data.permalink_url}" target="_blank">${data.ahead_by}</a>
-              ${changes} since the last production build. 🚢
-            `
-            setTimeout(() => {
-              this.animateOut(this.els.loadingMsg, () => {
-                removeClass(this.el, 'is-loading')
-                addClass(this.el, 'is-ahead')
-                this.animateIn(this.els.aheadMsg, this.els.deployBtn)
-              })
-            }, 1500)
+          if (status === 'ahead') {
+            this.els.aheadMsg.innerHTML = this._getAheadMessage(ahead_by, permalink_url)
+            delay(1500)
+              .then(this._unRenderState('loading'))
+              .then(this._renderState('ahead'))
           // a rebase is required
-          } else if (data.status === 'diverged') {
-            const commits = data.behind_by > 1 ? 'commits' : 'commit'
-            this.els.divergedMsg.innerHTML = `
-              You are viewing the staging site.
-              Staging has diverged behind production by
-              <a href="${data.permalink_url}" target="_blank">${data.behind_by}</a>
-              ${commits}. Please rebase.
-            `
-            setTimeout(() => {
-              this.animateOut(this.els.loadingMsg, () => {
-                removeClass(this.el, 'is-loading')
-                addClass(this.el, 'is-diverged')
-                this.animateIn(this.els.divergedMsg, this.els.infoBtn)
-              })
-            }, 1500)
+          } else if (status === 'diverged') {
+            this.els.divergedMsg.innerHTML = this._getDivergedMessage(behind_by, permalink_url)
+            delay(1500)
+              .then(this._unRenderState('loading'))
+              .then(this._renderState('diverged'))
           // we're in-sync! hooray!
           } else {
-            setTimeout(() => {
-              this.animateOut(this.els.loadingMsg, () => {
-                removeClass(this.el, 'is-loading')
-                addClass(this.el, 'is-synchronized')
-                this.animateIn(this.els.syncedMsg)
-              })
-            }, 1500)
+            delay(1500)
+              .then(this._unRenderState('loading'))
+              .then(this._renderState('synchronized'))
           }
         })
     }
+  }
+
+  /**
+   * [_renderState description]
+   * @param  {[type]} state [description]
+   * @return {[type]}       [description]
+   */
+  _renderState(state) {
+    return () => new Promise((resolve) => {
+      addClass(this.el, `is-${state}`)
+      this.animateIn(...this.states[state], resolve)
+    })
+  }
+
+  /**
+   * [_unRenderState description]
+   * @param  {[type]} state [description]
+   * @return {[type]}       [description]
+   */
+  _unRenderState(state) {
+    return () => new Promise((resolve) => {
+      this.animateOut(...this.states[state], () => {
+        removeClass(this.el, `is-${state}`)
+        resolve()
+      })
+    })
+  }
+
+  /**
+   * [_getAheadMessage description]
+   * @param  {[type]} count [description]
+   * @param  {[type]} link  [description]
+   * @return {[type]}       [description]
+   */
+  _getAheadMessage (count, link) {
+    return `
+      You are viewing the staging site.
+      There ${count > 1 ? 'have' : 'has'} been
+      <a href="${link}" target="_blank">${count}</a>
+      ${count > 1 ? 'changes' : 'change'} since the last production build. 🚢
+    `
+  }
+
+  /**
+   * [_getDivergedMessage description]
+   * @param  {[type]} count [description]
+   * @param  {[type]} link  [description]
+   * @return {[type]}       [description]
+   */
+  _getDivergedMessage (count, link) {
+    return `
+      You are viewing the staging site.
+      Staging has diverged behind production by
+      <a href="${link}" target="_blank">${count}</a>
+      ${count > 1 ? 'commits' : 'commit'}. Please rebase.
+    `
   }
 
   /**
@@ -214,9 +283,9 @@ class TrafficControl {
       once(el, animationStart, () => isAnimated = true)
       addClassesInSequence(el, 'is-active', 'is-entering')
       if (isAnimated) {
-        once(el, animationEnd, () => setTimeout(after, 0))
+        once(el, animationEnd, () => delay(0).then(after))
       } else {
-        setTimeout(after, 0)
+        delay(0).then(after)
       }
     }
   }
@@ -239,19 +308,30 @@ class TrafficControl {
       once(el, animationStart, () => isAnimated = true)
       once(el, animationEnd, () => {
         removeClassesInSequence(el, 'is-leaving', 'is-active')
-        setTimeout(after, 200)
+        delay(200).then(after)
       })
       addClass(el, 'is-leaving')
       // delay prevents isAnimation check being called before isAnimation is resolved... could be improved
-      setTimeout(() => {
+      delay(50).then(() => {
         if (!isAnimated) {
           removeClassesInSequence(el, 'is-leaving', 'is-active')
-          setTimeout(after, 0)
+          delay(0).then(after)
         }
-      }, 50)
+      })
     }
   }
 
+}
+
+/**
+ * [delay description]
+ * @param  {[type]} ms [description]
+ * @return {[type]}    [description]
+ */
+function delay (ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms)
+  })
 }
 
 /**
