@@ -17,6 +17,13 @@
         until you authorize read/write access
         to your Github repository.
       </div>
+      <div class="tc-message--text tc-message--conflict">
+        Could not perform merge due to a merge conflict.
+        You'll have to do this update manually. 😕
+      </div>
+      <div class="tc-message--text tc-message--success">
+        Merge successful! ✨🎊
+      </div>
     </div>
   </div>
   <div class="tc-action">
@@ -36,6 +43,14 @@
       <button
         class="tc-action--button tc-action--ok"
         aria-label="Close git instructions"
+      >Ok</button>
+      <button
+        class="tc-action--button tc-action--conflict"
+        aria-label="Close merge conflict message"
+      >Ok</button>
+      <button
+        class="tc-action--button tc-action--success"
+        aria-label="Close merge success message"
       >Ok</button>
     </div>
   </div>

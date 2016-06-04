@@ -74,7 +74,7 @@ class TrafficControl {
     this.els.instructionMsg.innerHTML = `
       git checkout ${this.opts.stagingBranch} &&
       git pull -r origin ${this.opts.productionBranch} &&
-      git push origin ${this.opts.stagingBranch}
+      git push origin ${this.opts.stagingBranch} --force
     `
     this._addEventHooks()
     this._addStates()
@@ -92,10 +92,14 @@ class TrafficControl {
       divergedMsg: 'tc-message--diverged',
       unauthedMsg: 'tc-message--unauthorized',
       instructionMsg: 'tc-message--instruction',
+      conflictMsg: 'tc-message--conflict',
+      successMsg: 'tc-message--success',
       deployBtn: 'tc-action--deploy',
       authBtn: 'tc-action--authorize',
       infoBtn: 'tc-action--info',
       okBtn: 'tc-action--ok',
+      conflictBtn: 'tc-action--conflict',
+      successBtn: 'tc-action--success',
       closeBtn: 'tc-close--button'
     })
   }
@@ -114,6 +118,51 @@ class TrafficControl {
         .then(this._unRenderState('instruction'))
         .then(this._renderState('diverged'))
     })
+    on(this.els.closeBtn, 'click', () => {
+      delay(0)
+        .then(this._unRenderState('mounted'))
+    })
+    on(this.els.authBtn, 'click', () => {
+      netlify.authenticate({ provider: 'github', scope: 'repo' }, (error, data) => {
+        if (error) {
+          const msg = error.err ? error.err.message : error.message
+          throw new Error(`Error authenticating: ${msg}`)
+        }
+        localStorage.gh_token = data.token
+        this._authenticateAndRenderState()
+      })
+    })
+    on(this.els.conflictBtn, 'click', () => {
+      this._authenticateAndRenderState()
+    })
+    on(this.els.successBtn, 'click', () => {
+      this._authenticateAndRenderState()
+    })
+    on(this.els.deployBtn, 'click', () => {
+      delay(0)
+        .then(this._unRenderState('ahead'))
+        .then(this._renderState('loading'))
+      window.fetch(`${this.opts.repoURL}/merges?access_token=${localStorage.gh_token}`, {
+        method: 'POST',
+        body: JSON.stringify({
+          base: this.opts.productionBranch,
+          head: this.opts.stagingBranch,
+          commit_message: ':vertical_traffic_light: Production deploy triggered from traffic-control'
+        })
+      })
+        .then((response) => {
+          console.log(response)
+          if (response.status === 201) {
+            return delay(3000)
+              .then(this._unRenderState('loading'))
+              .then(this._renderState('success'))
+          } else if (response.status === 409) {
+            return delay(3000)
+              .then(this._unRenderState('loading'))
+              .then(this._renderState('conflict'))
+          }
+        })
+    })
   }
 
   /**
@@ -127,7 +176,9 @@ class TrafficControl {
       ahead: [this.els.aheadMsg, this.els.deployBtn, this.els.closeBtn],
       diverged: [this.els.divergedMsg, this.els.infoBtn, this.els.closeBtn],
       synchronized: [this.els.syncedMsg, this.els.closeBtn],
-      instruction: [this.els.instructionMsg, this.els.okBtn, this.els.closeBtn]
+      instruction: [this.els.instructionMsg, this.els.okBtn, this.els.closeBtn],
+      conflict: [this.els.conflictMsg, this.els.conflictBtn, this.els.closeBtn],
+      success: [this.els.successMsg, this.els.successBtn, this.els.closeBtn]
     }
   }
 
@@ -166,43 +217,43 @@ class TrafficControl {
     const netlify = window.netlify
     if (!localStorage.gh_token) {
       // fake some loading time
-      delay(1500)
+      return delay(1500)
         .then(this._unRenderState('loading'))
         .then(this._renderState('unauthorized'))
-      on(this.els.authBtn, 'click', () => {
-        netlify.authenticate({ provider: 'github', scope: 'repo' }, (error, data) => {
-          if (error) {
-            const msg = error.err ? error.err.message : error.message
-            throw new Error(`Error authenticating: ${msg}`)
-          }
-          localStorage.gh_token = data.token
-          this._authenticateAndRenderState()
-        })
-      })
     } else {
+      if (hasClass(this.el, 'is-success')) {
+        delay(500)
+          .then(this._unRenderState('success'))
+          .then(this._renderState('loading'))
+      }
+      if (hasClass(this.el, 'is-conflict')) {
+        delay(500)
+          .then(this._unRenderState('conflict'))
+          .then(this._renderState('loading'))
+      }
       if (hasClass(this.el, 'is-unauthorized')) {
         delay(500)
           .then(this._unRenderState('unauthorized'))
           .then(this._renderState('loading'))
       }
-      fetch(`${this.opts.compareBranchesURL}?access_token=${localStorage.gh_token}`)
+      return window.fetch(`${this.opts.compareBranchesURL}?access_token=${localStorage.gh_token}`)
         .then((r) => r.json())
         .then(({ status, ahead_by, behind_by, permalink_url }) => {
           // a deploy is required
           if (status === 'ahead') {
             this.els.aheadMsg.innerHTML = this._getAheadMessage(ahead_by, permalink_url)
-            delay(1500)
+            return delay(1500)
               .then(this._unRenderState('loading'))
               .then(this._renderState('ahead'))
           // a rebase is required
           } else if (status === 'diverged') {
             this.els.divergedMsg.innerHTML = this._getDivergedMessage(behind_by, permalink_url)
-            delay(1500)
+            return delay(1500)
               .then(this._unRenderState('loading'))
               .then(this._renderState('diverged'))
           // we're in-sync! hooray!
           } else {
-            delay(1500)
+            return delay(1500)
               .then(this._unRenderState('loading'))
               .then(this._renderState('synchronized'))
           }
@@ -518,7 +569,7 @@ export default function trafficControl (opts) {
   }
 }
 
-// function trafficControl2 (opts) {
+// export default function trafficControl (opts) {
 //
 //   opts = opts || {}
 //   opts.GH_API = opts.GH_API || 'https://api.github.com'
@@ -573,7 +624,7 @@ export default function trafficControl (opts) {
 //           })
 //         })
 //       } else {
-//         $.getJSON(opts.GH_API + '/repos/' + opts.repo + '/compare/' + opts.productionBranch + '...' + opts.stagingBranch + 'develop?access_token=' + localStorage.gh_token, function (data) {
+//         $.getJSON(opts.GH_API + '/repos/' + opts.repo + '/compare/' + opts.productionBranch + '...' + opts.stagingBranch + '?access_token=' + localStorage.gh_token, function (data) {
 //           $bar.empty()
 //           var $deployBtn = $('<button>Deploy</button>')
 //           if (data.status === 'ahead') {
@@ -589,8 +640,8 @@ export default function trafficControl (opts) {
 //             $body.prepend($bar)
 //             $deployBtn.on('click', function () {
 //               $.post(opts.GH_API + '/repos/' + opts.repo + '/merges?access_token=' + localStorage.gh_token, JSON.stringify({
-//                 base: 'master',
-//                 head: 'develop',
+//                 base: opts.productionBranch,
+//                 head: opts.stagingBranch,
 //                 commit_message: ':vertical_traffic_light: Production deploy triggered from traffic-control'
 //               }), function () {
 //                 bar()
