@@ -10,6 +10,8 @@ import addCSS from './addCSS'
 import hasClass from './hasClass'
 import addClass from './addClass'
 import removeClass from './removeClass'
+import getJSON from './getJSON'
+import postJSON from './postJSON'
 import AnimationEngine from './animation-engine'
 
 const animator = new AnimationEngine()
@@ -66,7 +68,8 @@ export default class TrafficControl {
     addCSS(styles)
     this.initializeElementWithMarkup()
     this.instantiateElementWithDefaultState()
-      .then(() => this.authenticateAndRenderState())
+      .then(() => this.computeAndAnimateState())
+      .catch((error) => console.error(error))
   }
 
   /**
@@ -154,30 +157,22 @@ export default class TrafficControl {
     on(this.els.infoBtn, 'click', () => this.renderState('instruction'))
     on(this.els.okBtn, 'click', () => this.renderState('diverged'))
     on(this.els.closeBtn, 'click', () => this.unRenderState('mounted'))
-    on(this.els.authBtn, 'click', () => {
-      netlify.authenticate({ provider: 'github', scope: 'repo' }, (error, data) => {
-        if (error) {
-          const msg = error.err ? error.err.message : error.message
-          throw new Error(`Error authenticating: ${msg}`)
-        }
-        localStorage.gh_token = data.token
-        this.authenticateAndRenderState()
+    on(this.els.authBtn, 'click', () => this.authenticateGithub()
+      .then(({ token }) => {
+        localStorage.gh_token = token
+        return this.computeAndAnimateState()
       })
-    })
-    on(this.els.conflictBtn, 'click', () => this.authenticateAndRenderState())
-    on(this.els.successBtn, 'click', () => this.authenticateAndRenderState())
+      .catch((error) => console.error(error))
+    )
+    on(this.els.conflictBtn, 'click', () => this.computeAndAnimateState())
+    on(this.els.successBtn, 'click', () => this.computeAndAnimateState())
     on(this.els.deployBtn, 'click', () => {
       this.renderState('loading')
-        .then(() => {
-          return window.fetch(`${this.opts.repoURL}/merges?access_token=${localStorage.gh_token}`, {
-            method: 'POST',
-            body: JSON.stringify({
-              base: this.opts.productionBranch,
-              head: this.opts.stagingBranch,
-              commit_message: ':vertical_traffic_light: Production deploy triggered from traffic-control'
-            })
-          })
-        })
+        .then(() => postJSON(`${this.opts.repoURL}/merges?access_token=${localStorage.gh_token}`, {
+          base: this.opts.productionBranch,
+          head: this.opts.stagingBranch,
+          commit_message: ':vertical_traffic_light: Production deploy triggered from traffic-control'
+        }))
         .then(({ status }) => {
           if (status === 201) {
             return this.renderState('success')
@@ -185,6 +180,7 @@ export default class TrafficControl {
             return this.renderState('conflict')
           }
         })
+        .catch((error) => console.error(error))
     })
   }
 
@@ -216,12 +212,11 @@ export default class TrafficControl {
    * [_authenticateAndInitialize description]
    * @return {[type]} [description]
    */
-  authenticateAndRenderState () {
+  computeAndAnimateState () {
     this.renderState('loading')
     return (!localStorage.gh_token)
       ? this.renderState('unauthorized')
-      : window.fetch(`${this.opts.compareBranchesURL}?access_token=${localStorage.gh_token}`)
-        .then((response) => response.json())
+      : getJSON(`${this.opts.compareBranchesURL}?access_token=${localStorage.gh_token}`)
         .then(({ status, ahead_by, behind_by, permalink_url }) => {
           // a deploy is required
           if (status === 'ahead') {
@@ -236,6 +231,7 @@ export default class TrafficControl {
             return this.renderState('synchronized')
           }
         })
+        .catch((error) => console.error(error))
   }
 
   /**
@@ -300,6 +296,18 @@ export default class TrafficControl {
       <a href="${link}" target="_blank">${count}</a>
       ${count > 1 ? 'commits' : 'commit'}. Please rebase.
     `
+  }
+
+  /**
+   * [authenticateGithub description]
+   * @return {[type]} [description]
+   */
+  authenticateGithub () {
+    return new Promise((resolve, reject) => {
+      netlify.authenticate({ provider: 'github', scope: 'repo' }, (error, data) => {
+        return error ? reject(error) : resolve(data)
+      })
+    })
   }
 
 }
