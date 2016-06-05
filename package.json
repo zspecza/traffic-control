@@ -19,13 +19,8 @@
     "snazzy": "^4.0.0",
     "whatwg-fetch": "^1.0.0"
   },
-  "standard": {
-    "ignore": [
-      "dist/**",
-      "README.md"
-    ]
-  },
   "homepage": "https://github.com/declandewet/traffic-control#readme",
+  "jsnext:main": "src/index.js",
   "license": "MIT",
   "main": "dist/traffic-control.js",
   "repository": {
@@ -33,14 +28,20 @@
     "url": "git+https://github.com/declandewet/traffic-control.git"
   },
   "scripts": {
-    "lint": "snazzy",
     "build": "concurrently \"npm run build-dev\" \"npm run build-prod\" \"npm run build-min\"",
     "build-dev": "rollup --config rollup.config.dev.js",
     "build-dev-test": "rollup --config rollup.config.dev-test.js",
     "build-min": "rollup --config rollup.config.minified.js",
     "build-prod": "rollup -c",
+    "lint": "snazzy",
     "pretest": "npm run lint && npm run build",
     "preversion": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "standard": {
+    "ignore": [
+      "dist/**",
+      "README.md"
+    ]
   }
 }

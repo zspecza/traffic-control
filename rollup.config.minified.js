@@ -7,7 +7,7 @@ import commonjs from 'rollup-plugin-commonjs'
 import nodeResolve from 'rollup-plugin-node-resolve'
 
 export default {
-  entry: 'src/traffic-control.js',
+  entry: 'src/index.js',
   dest: 'dist/traffic-control.min.js',
   format: 'umd',
   moduleName: 'trafficControl',

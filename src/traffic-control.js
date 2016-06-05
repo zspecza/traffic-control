@@ -1,18 +1,25 @@
 'use strict'
 
-/* polyfills */
-import 'whatwg-fetch'
-import 'core-js/fn/object/assign'
-import 'core-js/fn/promise'
-
 /* component HTML & css */
 import initialMarkup from './template.html'
 import styles from './styles.css'
 
+/* modules */
+import on from './on'
+import off from './off'
+import once from './once'
+import addCSS from './addCSS'
+import hasClass from './hasClass'
+import addClass from './addClass'
+import removeClass from './removeClass'
+import addClassesInSequence from './addClassesInSequence'
+import removeClassesInSequence from './removeClassesInSequence'
+import animationEnd from './animationEnd'
+
 /**
  *
  */
-class TrafficControl {
+export default class TrafficControl {
   /**
    * [constructor description]
    * @param  {[type]} opts =             {} [description]
@@ -56,7 +63,7 @@ class TrafficControl {
    * @return {[type]} [description]
    */
   init () {
-    addCss(styles)
+    addCSS(styles)
     this.initializeElementWithMarkup()
     this.instantiateElementWithDefaultState()
       .then(() => this.authenticateAndRenderState())
@@ -102,6 +109,23 @@ class TrafficControl {
       successBtn: 'tc-action--success',
       closeBtn: 'tc-close--button'
     })
+  }
+
+  /**
+   * [_addStates description]
+   */
+  addStates () {
+    this.states = {
+      mounted: [this.els.bar],
+      loading: [this.els.loadingMsg, this.els.closeBtn],
+      unauthorized: [this.els.unauthedMsg, this.els.authBtn, this.els.closeBtn],
+      ahead: [this.els.aheadMsg, this.els.deployBtn, this.els.closeBtn],
+      diverged: [this.els.divergedMsg, this.els.infoBtn, this.els.closeBtn],
+      synchronized: [this.els.syncedMsg, this.els.closeBtn],
+      instruction: [this.els.instructionMsg, this.els.okBtn, this.els.closeBtn],
+      conflict: [this.els.conflictMsg, this.els.conflictBtn, this.els.closeBtn],
+      success: [this.els.successMsg, this.els.successBtn, this.els.closeBtn]
+    }
   }
 
   /**
@@ -154,23 +178,6 @@ class TrafficControl {
           }
         })
     })
-  }
-
-  /**
-   * [_addStates description]
-   */
-  addStates () {
-    this.states = {
-      mounted: [this.els.bar],
-      loading: [this.els.loadingMsg, this.els.closeBtn],
-      unauthorized: [this.els.unauthedMsg, this.els.authBtn, this.els.closeBtn],
-      ahead: [this.els.aheadMsg, this.els.deployBtn, this.els.closeBtn],
-      diverged: [this.els.divergedMsg, this.els.infoBtn, this.els.closeBtn],
-      synchronized: [this.els.syncedMsg, this.els.closeBtn],
-      instruction: [this.els.instructionMsg, this.els.okBtn, this.els.closeBtn],
-      conflict: [this.els.conflictMsg, this.els.conflictBtn, this.els.closeBtn],
-      success: [this.els.successMsg, this.els.successBtn, this.els.closeBtn]
-    }
   }
 
   /**
@@ -316,201 +323,6 @@ class TrafficControl {
     })))
   }
 
-}
-
-/**
- * [delay description]
- * @param  {[type]} ms [description]
- * @return {[type]}    [description]
- */
-function delay (ms) {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms)
-  })
-}
-
-/**
- * [_addCss description]
- * @param {[type]} css [description]
- */
-function addCss (css) {
-  const style = document.createElement('style')
-  const head = document.head || document.getElementsByTagName('head')[0]
-  style.type = 'text/css'
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css
-  } else {
-    style.appendChild(document.createTextNode(css))
-  }
-  head.appendChild(style)
-}
-
-/**
- * [hasClass description]
- * @param  {[type]}  el            [description]
- * @param  {[type]}  ...classNames [description]
- * @return {Boolean}               [description]
- */
-function hasClass (el, ...classNames) {
-  return el.classList.contains(...classNames)
-}
-
-/**
- * [addClass description]
- * @param {[type]} el            [description]
- * @param {[type]} ...classNames [description]
- */
-function addClass (el, ...classNames) {
-  el.classList.add(...classNames)
-}
-
-/**
- * [addClassesInSequence description]
- * @param {[type]} el            [description]
- * @param {[type]} ...classNames [description]
- */
-function addClassesInSequence (el, ...classNames) {
-  for (let i = 0, len = classNames.length; i < len; i++) {
-    addClass(el, classNames[i])
-  }
-}
-
-/**
- * [removeClass description]
- * @param  {[type]} el            [description]
- * @param  {[type]} ...classNames [description]
- * @return {[type]}               [description]
- */
-function removeClass (el, ...classNames) {
-  el.classList.remove(...classNames)
-}
-
-/**
- * [addClassesInSequence description]
- * @param {[type]} el            [description]
- * @param {[type]} ...classNames [description]
- */
-function removeClassesInSequence (el, ...classNames) {
-  for (let i = 0, len = classNames.length; i < len; i++) {
-    removeClass(el, classNames[i])
-  }
-}
-
-/**
- * [on description]
- * @param  {[type]} el        [description]
- * @param  {[type]} eventName [description]
- * @param  {[type]} func      [description]
- * @return {[type]}           [description]
- */
-function on (el, eventName, func) {
-  el.addEventListener(eventName, func, false)
-}
-
-/**
- * [off description]
- * @param  {[type]} el        [description]
- * @param  {[type]} eventName [description]
- * @param  {[type]} func      [description]
- * @return {[type]}           [description]
- */
-function off (el, eventName, func) {
-  el.removeEventListener(eventName, func)
-}
-
-/**
- * [addOneEventListener description]
- * @param {[type]} el        [description]
- * @param {[type]} eventName [description]
- * @param {[type]} func      [description]
- */
-function once (el, eventName, func) {
-  const cb = (...args) => {
-    func(...args)
-    off(el, eventName, cb)
-  }
-  on(el, eventName, cb)
-}
-
-/**
- * [description]
- * @param  {[type]} ( [description]
- * @return {[type]}   [description]
- */
-var animationEnd = (() => {
-  const el = document.createElement('fakeelement')
-  const animations = {
-    'animation': 'animationend',
-    'OAnimation': 'oanimationend',
-    'MozAnimation': 'animationend',
-    'WebkitAnimation': 'webkitAnimationEnd',
-    'MSAnimation': 'MSAnimationEnd'
-  }
-  for (let t in animations) {
-    if (!el.style[t] != null) {
-      return animations[t]
-    }
-  }
-})()
-
-/**
- * [description]
- * @param  {[type]} ( [description]
- * @return {[type]}   [description]
- */
-var animationStart = (() => {
-  const el = document.createElement('fakeelement')
-  const animations = {
-    'animation': 'animationstart',
-    'OAnimation': 'oanimationstart',
-    'MozAnimation': 'animationstart',
-    'WebkitAnimation': 'webkitAnimationStart',
-    'MSAnimation': 'MSAnimationStart'
-  }
-  for (let t in animations) {
-    if (!el.style[t] != null) {
-      return animations[t]
-    }
-  }
-})()
-
-/**
- * [trafficControl description]
- * @param  {[type]} opts [description]
- * @return {[type]}      [description]
- */
-export default function trafficControl (opts) {
-  let netlify = window.netlify
-
-  /**
-   * [description]
-   * @return {[type]} [description]
-   */
-  const init = () => {
-    return new TrafficControl(opts)
-  }
-
-  /**
-   * [description]
-   * @return {[type]} [description]
-   */
-  const conditionallyLoadNetlify = () => {
-    if (netlify == null) {
-      const script = document.createElement('script')
-      script.type = 'text/javascript'
-      script.onload = script.onreadystatechange = init
-      script.src = 'https://app.netlify.com/authentication.js'
-      return document.body.appendChild(script)
-    } else {
-      return init()
-    }
-  }
-
-  if (window.addEventListener) {
-    window.addEventListener('load', conditionallyLoadNetlify, false)
-  } else if (window.attachEvent) {
-    window.attachEvent('onload', conditionallyLoadNetlify)
-  }
 }
 
 // export default function trafficControl (opts) {
