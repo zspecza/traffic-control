@@ -19,19 +19,19 @@ class TrafficControl {
    * @return {[type]}      [description]
    */
   constructor (opts = {}) {
-    this.opts = Object.assign({}, this._getDefaultOpts(), opts)
+    this.opts = Object.assign({}, this.getDefaultOpts(), opts)
     this.opts.repoURL = `${this.opts.ghAPI}/repos/${this.opts.repo}`
     this.opts.compareURL = `${this.opts.repoURL}/compare`
     this.opts.compareBranchesURL = `${this.opts.compareURL}/${this.opts.productionBranch}...${this.opts.stagingBranch}`
-    this._validateOpts(this.opts)
-    this._init()
+    this.validateOpts(this.opts)
+    this.init()
   }
 
   /**
    * [_getDefaultOpts description]
    * @return {[type]} [description]
    */
-  _getDefaultOpts () {
+  getDefaultOpts () {
     return {
       stagingBranch: 'develop',
       productionBranch: 'master',
@@ -45,7 +45,7 @@ class TrafficControl {
    * @param  {[type]} opts [description]
    * @return {[type]}      [description]
    */
-  _validateOpts (opts) {
+  validateOpts (opts) {
     if (opts.repo == null) {
       throw new Error('You need to specify a repository.')
     }
@@ -55,36 +55,36 @@ class TrafficControl {
    * [_init description]
    * @return {[type]} [description]
    */
-  _init () {
+  init () {
     addCss(styles)
-    this._initializeElementWithMarkup()
-    this._instantiateElementWithDefaultState()
-    this._authenticateAndRenderState()
+    this.initializeElementWithMarkup()
+    this.instantiateElementWithDefaultState()
+      .then(() => this.authenticateAndRenderState())
   }
 
   /**
    * [_initializeElementWithMarkup description]
    * @return {[type]} [description]
    */
-  _initializeElementWithMarkup () {
+  initializeElementWithMarkup () {
     this.el = document.createElement('traffic-control')
     this.el.id = 'traffic-control'
     this.el.innerHTML = initialMarkup
-    this._addDomRefs()
+    this.addDomRefs()
     this.els.instructionMsg.innerHTML = `
       git checkout ${this.opts.stagingBranch} &&
       git pull -r origin ${this.opts.productionBranch} &&
       git push origin ${this.opts.stagingBranch} --force
     `
-    this._addEventHooks()
-    this._addStates()
+    this.addEventHooks()
+    this.addStates()
   }
 
   /**
    * [_addDomRefs description]
    */
-  _addDomRefs () {
-    this.els = this._getDOMReferences({
+  addDomRefs () {
+    this.els = this.getDOMReferences({
       bar: 'tc-bar',
       loadingMsg: 'tc-message--loading',
       syncedMsg: 'tc-message--synchronized',
@@ -107,20 +107,15 @@ class TrafficControl {
   /**
    * [_addEventHooks description]
    */
-  _addEventHooks () {
+  addEventHooks () {
     on(this.els.infoBtn, 'click', () => {
-      delay(0)
-        .then(this._unRenderState('diverged'))
-        .then(this._renderState('instruction'))
+      this.unRenderState('diverged').then(() => this.renderState('instruction'))
     })
     on(this.els.okBtn, 'click', () => {
-      delay(0)
-        .then(this._unRenderState('instruction'))
-        .then(this._renderState('diverged'))
+      this.unRenderState('instruction').then(() => this.renderState('diverged'))
     })
     on(this.els.closeBtn, 'click', () => {
-      delay(0)
-        .then(this._unRenderState('mounted'))
+      this.unRenderState('mounted')
     })
     on(this.els.authBtn, 'click', () => {
       netlify.authenticate({ provider: 'github', scope: 'repo' }, (error, data) => {
@@ -129,37 +124,33 @@ class TrafficControl {
           throw new Error(`Error authenticating: ${msg}`)
         }
         localStorage.gh_token = data.token
-        this._authenticateAndRenderState()
+        this.authenticateAndRenderState()
       })
     })
     on(this.els.conflictBtn, 'click', () => {
-      this._authenticateAndRenderState()
+      this.authenticateAndRenderState()
     })
     on(this.els.successBtn, 'click', () => {
-      this._authenticateAndRenderState()
+      this.authenticateAndRenderState()
     })
     on(this.els.deployBtn, 'click', () => {
-      delay(0)
-        .then(this._unRenderState('ahead'))
-        .then(this._renderState('loading'))
-      window.fetch(`${this.opts.repoURL}/merges?access_token=${localStorage.gh_token}`, {
-        method: 'POST',
-        body: JSON.stringify({
-          base: this.opts.productionBranch,
-          head: this.opts.stagingBranch,
-          commit_message: ':vertical_traffic_light: Production deploy triggered from traffic-control'
+      this.unRenderState('ahead')
+        .then(() => this.renderState('loading'))
+        .then(() => {
+          return window.fetch(`${this.opts.repoURL}/merges?access_token=${localStorage.gh_token}`, {
+            method: 'POST',
+            body: JSON.stringify({
+              base: this.opts.productionBranch,
+              head: this.opts.stagingBranch,
+              commit_message: ':vertical_traffic_light: Production deploy triggered from traffic-control'
+            })
+          })
         })
-      })
         .then((response) => {
-          console.log(response)
           if (response.status === 201) {
-            return delay(3000)
-              .then(this._unRenderState('loading'))
-              .then(this._renderState('success'))
+            return this.unRenderState('loading').then(() => this.renderState('success'))
           } else if (response.status === 409) {
-            return delay(3000)
-              .then(this._unRenderState('loading'))
-              .then(this._renderState('conflict'))
+            return this.unRenderState('loading').then(() => this.renderState('conflict'))
           }
         })
     })
@@ -168,7 +159,7 @@ class TrafficControl {
   /**
    * [_addStates description]
    */
-  _addStates () {
+  addStates () {
     this.states = {
       mounted: [this.els.bar],
       loading: [this.els.loadingMsg, this.els.closeBtn],
@@ -187,7 +178,7 @@ class TrafficControl {
    * @param  {[type]} classes [description]
    * @return {[type]}         [description]
    */
-  _getDOMReferences (classes) {
+  getDOMReferences (classes) {
     let o = {}
     for (let el in classes) {
       if (classes.hasOwnProperty(el)) {
@@ -201,61 +192,45 @@ class TrafficControl {
    * [_instantiateElement description]
    * @return {[type]} [description]
    */
-  _instantiateElementWithDefaultState () {
+  instantiateElementWithDefaultState () {
     this.opts.containerEl.appendChild(this.el)
-    delay(0)
-      .then(this._renderState('mounted'))
-      .then(this._renderState('loading'))
+    return this.renderState('mounted').then(() => this.renderState('loading'))
   }
 
   /**
    * [_authenticateAndInitialize description]
    * @return {[type]} [description]
    */
-  _authenticateAndRenderState () {
+  authenticateAndRenderState () {
     const localStorage = window.localStorage
     const netlify = window.netlify
     if (!localStorage.gh_token) {
       // fake some loading time
-      return delay(1500)
-        .then(this._unRenderState('loading'))
-        .then(this._renderState('unauthorized'))
+      return this.unRenderState('loading').then(() => this.renderState('unauthorized'))
     } else {
       if (hasClass(this.el, 'is-success')) {
-        delay(500)
-          .then(this._unRenderState('success'))
-          .then(this._renderState('loading'))
+        this.unRenderState('success').then(() => this.renderState('loading'))
       }
       if (hasClass(this.el, 'is-conflict')) {
-        delay(500)
-          .then(this._unRenderState('conflict'))
-          .then(this._renderState('loading'))
+        this.unRenderState('conflict').then(() => this.renderState('loading'))
       }
       if (hasClass(this.el, 'is-unauthorized')) {
-        delay(500)
-          .then(this._unRenderState('unauthorized'))
-          .then(this._renderState('loading'))
+        this.unRenderState('unauthorized').then(() => this.renderState('loading'))
       }
       return window.fetch(`${this.opts.compareBranchesURL}?access_token=${localStorage.gh_token}`)
         .then((r) => r.json())
         .then(({ status, ahead_by, behind_by, permalink_url }) => {
           // a deploy is required
           if (status === 'ahead') {
-            this.els.aheadMsg.innerHTML = this._getAheadMessage(ahead_by, permalink_url)
-            return delay(1500)
-              .then(this._unRenderState('loading'))
-              .then(this._renderState('ahead'))
+            this.els.aheadMsg.innerHTML = this.getAheadMessage(ahead_by, permalink_url)
+            return this.unRenderState('loading').then(() => this.renderState('ahead'))
           // a rebase is required
           } else if (status === 'diverged') {
-            this.els.divergedMsg.innerHTML = this._getDivergedMessage(behind_by, permalink_url)
-            return delay(1500)
-              .then(this._unRenderState('loading'))
-              .then(this._renderState('diverged'))
+            this.els.divergedMsg.innerHTML = this.getDivergedMessage(behind_by, permalink_url)
+            return this.unRenderState('loading').then(() => this.renderState('diverged'))
           // we're in-sync! hooray!
           } else {
-            return delay(1500)
-              .then(this._unRenderState('loading'))
-              .then(this._renderState('synchronized'))
+            return this.unRenderState('loading').then(() => this.renderState('synchronized'))
           }
         })
     }
@@ -266,11 +241,9 @@ class TrafficControl {
    * @param  {[type]} state [description]
    * @return {[type]}       [description]
    */
-  _renderState(state) {
-    return () => new Promise((resolve) => {
-      addClass(this.el, `is-${state}`)
-      this.animateIn(...this.states[state], resolve)
-    })
+  renderState(state) {
+    addClass(this.el, `is-${state}`)
+    return this.animateIn(...this.states[state])
   }
 
   /**
@@ -278,13 +251,9 @@ class TrafficControl {
    * @param  {[type]} state [description]
    * @return {[type]}       [description]
    */
-  _unRenderState(state) {
-    return () => new Promise((resolve) => {
-      this.animateOut(...this.states[state], () => {
-        removeClass(this.el, `is-${state}`)
-        resolve()
-      })
-    })
+  unRenderState(state) {
+    return this.animateOut(...this.states[state])
+      .then(() => removeClass(this.el, `is-${state}`))
   }
 
   /**
@@ -293,7 +262,7 @@ class TrafficControl {
    * @param  {[type]} link  [description]
    * @return {[type]}       [description]
    */
-  _getAheadMessage (count, link) {
+  getAheadMessage (count, link) {
     return `
       You are viewing the staging site.
       There ${count > 1 ? 'have' : 'has'} been
@@ -308,7 +277,7 @@ class TrafficControl {
    * @param  {[type]} link  [description]
    * @return {[type]}       [description]
    */
-  _getDivergedMessage (count, link) {
+  getDivergedMessage (count, link) {
     return `
       You are viewing the staging site.
       Staging has diverged behind production by
@@ -324,21 +293,10 @@ class TrafficControl {
    * @return {[type]}       [description]
    */
   animateIn (...els) {
-    let after = () => {}
-    if (typeof els[els.length - 1] === 'function') {
-      after = els.pop()
-    }
-    for (let i = 0, len = els.length; i < len; i++) {
-      let el = els[i]
-      let isAnimated = false
-      once(el, animationStart, () => isAnimated = true)
+    return Promise.all(els.map((el) => new Promise((resolve) => {
+      once(el, animationEnd, resolve)
       addClassesInSequence(el, 'is-active', 'is-entering')
-      if (isAnimated) {
-        once(el, animationEnd, () => delay(0).then(after))
-      } else {
-        delay(0).then(after)
-      }
-    }
+    })))
   }
 
   /**
@@ -348,28 +306,14 @@ class TrafficControl {
    * @return {[type]}       [description]
    */
   animateOut (...els) {
-    let after = () => {}
-    if (typeof els[els.length - 1] === 'function') {
-      after = els.pop()
-    }
-    for (let i = 0, len = els.length; i < len; i++) {
-      let el = els[i]
-      let isAnimated = false
-      removeClass(el, 'is-entering')
-      once(el, animationStart, () => isAnimated = true)
+    return Promise.all(els.map((el) => new Promise((resolve) => {
       once(el, animationEnd, () => {
         removeClassesInSequence(el, 'is-leaving', 'is-active')
-        delay(200).then(after)
+        resolve()
       })
+      removeClass(el, 'is-entering')
       addClass(el, 'is-leaving')
-      // delay prevents isAnimation check being called before isAnimation is resolved... could be improved
-      delay(50).then(() => {
-        if (!isAnimated) {
-          removeClassesInSequence(el, 'is-leaving', 'is-active')
-          delay(0).then(after)
-        }
-      })
-    }
+    })))
   }
 
 }

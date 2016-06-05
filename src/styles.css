@@ -78,6 +78,7 @@ traffic-control.is-success .tc-bar {
 
 traffic-control .tc-bar.is-entering {
   animation: slideInUp .6s ease both;
+  animation-delay: .6s;
 }
 
 traffic-control .tc-bar.is-leaving {
@@ -196,7 +197,6 @@ traffic-control .tc-message--loading:after {
 
 traffic-control .tc-message--loading.is-entering {
   animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
-  animation-delay: .3s;
 }
 
 traffic-control .tc-message--loading.is-leaving {
@@ -412,7 +412,6 @@ traffic-control.is-success .tc-close--button {
 
 traffic-control .tc-close--button.is-entering {
   animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
-  animation-delay: .3s;
 }
 
 traffic-control .tc-close--button.is-leaving {
