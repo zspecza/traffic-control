@@ -28,11 +28,11 @@ export default class TrafficControl {
    * @return {[type]}      [description]
    */
   constructor (opts = {}) {
-    this.opts = Object.assign({}, this.getDefaultOpts(), opts)
-    this.opts.repoURL = `${this.opts.ghAPI}/repos/${this.opts.repo}`
-    this.opts.compareURL = `${this.opts.repoURL}/compare`
-    this.opts.compareBranchesURL = `${this.opts.compareURL}/${this.opts.productionBranch}...${this.opts.stagingBranch}`
-    this.validateOpts(this.opts)
+    opts = Object.assign({}, this.getDefaultOpts(), opts)
+    opts.repoURL = `${opts.ghAPI}/repos/${opts.repo}`
+    opts.compareURL = `${opts.repoURL}/compare`
+    opts.compareBranchesURL = `${opts.compareURL}/${opts.productionBranch}...${opts.stagingBranch}`
+    this.opts = this.validateOpts(opts)
     this.init()
   }
 
@@ -58,6 +58,7 @@ export default class TrafficControl {
     if (opts.repo == null) {
       throw new Error('You need to specify a repository.')
     }
+    return opts
   }
 
   /**
@@ -115,39 +116,38 @@ export default class TrafficControl {
   }
 
   /**
+   * [addState description]
+   * @param {[type]} name [description]
+   * @param {[type]} opts [description]
+   */
+  addState (name, opts) {
+    let state
+    this.states = this.states || {}
+    if (Array.isArray(opts)) {
+      state = { ui: opts }
+    } else {
+      state = opts
+    }
+    state.ui = state.ui.map((el) => this.els[el])
+    this.states[name] = state
+  }
+
+  /**
    * [_addStates description]
    */
   addStates () {
-    this.states = {
-      mounted: {
-        ui: [this.els.bar],
-        persist: true
-      },
-      loading: {
-        ui: [this.els.loadingMsg, this.els.closeBtn]
-      },
-      unauthorized: {
-        ui: [this.els.unauthedMsg, this.els.authBtn, this.els.closeBtn]
-      },
-      ahead: {
-        ui: [this.els.aheadMsg, this.els.deployBtn, this.els.closeBtn]
-      },
-      diverged: {
-        ui: [this.els.divergedMsg, this.els.infoBtn, this.els.closeBtn]
-      },
-      synchronized: {
-        ui: [this.els.syncedMsg, this.els.closeBtn]
-      },
-      instruction: {
-        ui: [this.els.instructionMsg, this.els.okBtn, this.els.closeBtn]
-      },
-      conflict: {
-        ui: [this.els.conflictMsg, this.els.conflictBtn, this.els.closeBtn]
-      },
-      success: {
-        ui: [this.els.successMsg, this.els.successBtn, this.els.closeBtn]
-      }
-    }
+    this.addState('mounted', {
+      ui: ['bar'],
+      persist: true
+    })
+    this.addState('loading', ['loadingMsg', 'closeBtn'])
+    this.addState('unauthorized', ['unauthedMsg', 'authBtn', 'closeBtn'])
+    this.addState('ahead', ['aheadMsg', 'deployBtn', 'closeBtn'])
+    this.addState('diverged', ['divergedMsg', 'infoBtn', 'closeBtn'])
+    this.addState('synchronized', ['syncedMsg', 'closeBtn'])
+    this.addState('instruction', ['instructionMsg', 'okBtn', 'closeBtn'])
+    this.addState('conflict', ['conflictMsg', 'conflictBtn', 'closeBtn'])
+    this.addState('success', ['successMsg', 'successBtn', 'closeBtn'])
   }
 
   /**
