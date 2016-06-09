@@ -168,19 +168,34 @@ export default class TrafficControl {
     on(this.els.successBtn, 'click', () => this.computeAndAnimateState())
     on(this.els.deployBtn, 'click', () => {
       this.renderState('loading')
-        .then(() => postJSON(`${this.opts.repoURL}/merges?access_token=${localStorage.gh_token}`, {
-          base: this.opts.productionBranch,
-          head: this.opts.stagingBranch,
-          commit_message: ':vertical_traffic_light: Production deploy triggered from traffic-control'
-        }))
-        .then(({ status }) => {
-          if (status === 201) {
-            return this.renderState('success')
-          } else if (status === 409) {
-            return this.renderState('conflict')
-          }
-        })
+        .then(() => this.merge())
+        .then(this.renderMergeStatus.bind(this))
         .catch((error) => console.error(error))
+    })
+  }
+
+  /**
+   * [renderMergeStatus description]
+   * @param  {[type]} { status        } [description]
+   * @return {[type]}   [description]
+   */
+  renderMergeStatus ({ status }) {
+    if (status === 201) {
+      return this.renderState('success')
+    } else if (status === 409) {
+      return this.renderState('conflict')
+    }
+  }
+
+  /**
+   * [merge description]
+   * @return {[type]} [description]
+   */
+  merge () {
+    postJSON(`${this.opts.repoURL}/merges?access_token=${localStorage.gh_token}`, {
+      base: this.opts.productionBranch,
+      head: this.opts.stagingBranch,
+      commit_message: ':vertical_traffic_light: Production deploy triggered from traffic-control'
     })
   }
 
@@ -216,22 +231,49 @@ export default class TrafficControl {
     this.renderState('loading')
     return (!localStorage.gh_token)
       ? this.renderState('unauthorized')
-      : getJSON(`${this.opts.compareBranchesURL}?access_token=${localStorage.gh_token}`)
-        .then(({ status, ahead_by, behind_by, permalink_url }) => {
-          // a deploy is required
-          if (status === 'ahead') {
-            this.els.aheadMsg.innerHTML = this.getAheadMessage(ahead_by, permalink_url)
-            return this.renderState('ahead')
-          // a rebase is required
-          } else if (status === 'diverged') {
-            this.els.divergedMsg.innerHTML = this.getDivergedMessage(behind_by, permalink_url)
-            return this.renderState('diverged')
-          // we're in-sync! hooray!
-          } else {
-            return this.renderState('synchronized')
-          }
-        })
-        .catch((error) => console.error(error))
+      : this.getBranchComparison()
+          .then(this.renderDeploymentState.bind(this))
+          .catch((error) => console.error(error))
+  }
+
+  /**
+   * [renderDeploymentState description]
+   * @param  {[type]} {             status        [description]
+   * @param  {[type]} ahead_by      [description]
+   * @param  {[type]} behind_by     [description]
+   * @param  {[type]} permalink_url }             [description]
+   * @return {[type]}               [description]
+   */
+  renderDeploymentState ({ status, ahead_by, behind_by, permalink_url }) {
+    switch (status) {
+      case 'ahead':
+      case 'diverged':
+        this.els[`${status}Msg`].innerHTML = status === 'ahead'
+          ? this.getAheadMessage(ahead_by, permalink_url)
+          : this.getDivergedMessage(behind_by, permalink_url)
+        return this.renderState(status)
+      default:
+        return this.renderState('synchronized')
+    }
+  }
+
+  /**
+   * [getBranchComparison description]
+   * @return {[type]} [description]
+   */
+  getBranchComparison () {
+    return getJSON(`${this.opts.compareBranchesURL}?access_token=${localStorage.gh_token}`)
+  }
+
+  /**
+   * [getStates description]
+   * @return {[type]} [description]
+   */
+  getCurrentStates ({ filter }) {
+    return Object.keys(this.states)
+      .filter((state) => (
+        state !== filter && !this.states[state].persist
+      ))
   }
 
   /**
@@ -240,17 +282,14 @@ export default class TrafficControl {
    * @return {[type]}       [description]
    */
   renderState (state) {
-    const states = Object
-      .keys(this.states)
-      .filter((previousState) => (
-        previousState !== state && !this.states[previousState].persist
-      ))
+    // get a list of all states
     return Promise.all(
-      states.map((previousState) => new Promise((resolve) => {
-        return hasClass(this.el, `is-${previousState}`)
-          ? this.unRenderState(previousState).then(resolve)
-          : resolve()
-      }))
+      this.getCurrentStates({ filter: state })
+        .map((previousState) => new Promise((resolve) => {
+          return hasClass(this.el, `is-${previousState}`)
+            ? this.unRenderState(previousState).then(resolve)
+            : resolve()
+        }))
     )
       .then(() => {
         addClass(this.el, `is-${state}`)

@@ -16,7 +16,7 @@ import TrafficControl from './traffic-control'
  * @return {[type]}      [description]
  */
 export default function trafficControl (opts) {
-  let netlify = window.netlify
+  const netlify = window.netlify
 
   /**
    * [description]
