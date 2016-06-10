@@ -10,7 +10,11 @@ export default function (url, json) {
   return new Promise((resolve, reject) => {
     window.fetch(url, {
       method: 'POST',
-      body: JSON.stringify(json)
+      body: JSON.stringify(json),
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'application/json'
+      }
     })
       .then((response) => response.ok
           ? response

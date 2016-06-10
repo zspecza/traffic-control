@@ -7,7 +7,9 @@
  */
 export default function (url) {
   return new Promise((resolve, reject) => {
-    window.fetch(url)
+    window.fetch(url, {
+      cache: 'no-cache'
+    })
       .then((response) => response.ok
           ? response
           : Promise.reject(response.statusText)

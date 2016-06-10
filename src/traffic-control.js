@@ -169,7 +169,7 @@ export default class TrafficControl {
     on(this.els.deployBtn, 'click', () => {
       this.renderState('loading')
         .then(() => this.merge())
-        .then(() => this.renderMergeStatus())
+        .then((data) => this.renderMergeStatus(data))
         .catch((error) => console.error(error))
     })
   }
@@ -220,20 +220,21 @@ export default class TrafficControl {
    */
   instantiateElementWithDefaultState () {
     this.opts.containerEl.appendChild(this.el)
-    return this.renderState('mounted').then(() => this.renderState('loading'))
+    return this.renderState('mounted')
   }
 
   /**
    * [_authenticateAndInitialize description]
    * @return {[type]} [description]
    */
-  computeAndAnimateState () {
-    this.renderState('loading')
-    return (!localStorage.gh_token)
-      ? this.renderState('unauthorized')
-      : this.getBranchComparison()
-          .then(this.renderDeploymentState.bind(this))
-          .catch((error) => console.error(error))
+  computeAndAnimateState (o = {}) {
+    return this.renderState('loading')
+      .then(() => !localStorage.gh_token
+        ? this.renderState('unauthorized')
+        : this.getBranchComparison()
+            .then((data) => this.renderDeploymentState(data))
+      )
+      .catch((error) => console.error(error))
   }
 
   /**
@@ -262,7 +263,10 @@ export default class TrafficControl {
    * @return {[type]} [description]
    */
   getBranchComparison () {
-    return getJSON(`${this.opts.compareBranchesURL}?access_token=${localStorage.gh_token}`)
+    const cacheBuster = new Date().getTime()
+    return getJSON(
+      `${this.opts.compareBranchesURL}?access_token=${localStorage.gh_token}&cache_buster=${cacheBuster}`
+    )
   }
 
   /**
