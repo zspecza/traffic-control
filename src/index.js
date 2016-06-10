@@ -2,10 +2,10 @@
 
 /* polyfills */
 import 'whatwg-fetch'
-import 'core-js/fn/object/assign'
-import 'core-js/fn/object/keys'
-import 'core-js/fn/array/is-array'
-import 'core-js/fn/promise'
+// import 'core-js/fn/object/assign'
+// import 'core-js/fn/object/keys'
+// import 'core-js/fn/array/is-array'
+// import 'core-js/fn/promise'
 
 /* component class */
 import TrafficControl from './traffic-control'
