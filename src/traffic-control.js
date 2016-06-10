@@ -169,7 +169,7 @@ export default class TrafficControl {
     on(this.els.deployBtn, 'click', () => {
       this.renderState('loading')
         .then(() => this.merge())
-        .then(this.renderMergeStatus.bind(this))
+        .then(() => this.renderMergeStatus())
         .catch((error) => console.error(error))
     })
   }
@@ -192,7 +192,7 @@ export default class TrafficControl {
    * @return {[type]} [description]
    */
   merge () {
-    postJSON(`${this.opts.repoURL}/merges?access_token=${localStorage.gh_token}`, {
+    return postJSON(`${this.opts.repoURL}/merges?access_token=${localStorage.gh_token}`, {
       base: this.opts.productionBranch,
       head: this.opts.stagingBranch,
       commit_message: ':vertical_traffic_light: Production deploy triggered from traffic-control'
