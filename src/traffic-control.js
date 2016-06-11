@@ -110,7 +110,6 @@ export default class TrafficControl {
       infoBtn: 'tc-action--info',
       okBtn: 'tc-action--ok',
       conflictBtn: 'tc-action--conflict',
-      successBtn: 'tc-action--success',
       closeBtn: 'tc-close--button'
     })
   }
@@ -147,7 +146,7 @@ export default class TrafficControl {
     this.addState('synchronized', ['syncedMsg', 'closeBtn'])
     this.addState('instruction', ['instructionMsg', 'okBtn', 'closeBtn'])
     this.addState('conflict', ['conflictMsg', 'conflictBtn', 'closeBtn'])
-    this.addState('success', ['successMsg', 'successBtn', 'closeBtn'])
+    this.addState('success', ['successMsg', 'closeBtn'])
   }
 
   /**
@@ -165,7 +164,6 @@ export default class TrafficControl {
       .catch((error) => console.error(error))
     )
     on(this.els.conflictBtn, 'click', () => this.computeAndAnimateState())
-    on(this.els.successBtn, 'click', () => this.computeAndAnimateState())
     on(this.els.deployBtn, 'click', () => {
       this.renderState('loading')
         .then(() => this.merge())
@@ -182,6 +180,7 @@ export default class TrafficControl {
   renderMergeStatus ({ status }) {
     if (status === 201) {
       return this.renderState('success')
+        .then(() => this.computeAndAnimateState())
     } else if (status === 409) {
       return this.renderState('conflict')
     }
