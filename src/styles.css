@@ -4,11 +4,14 @@
   enough that custom styles are easier to implement.
  */
 
-traffic-control,
+traffic-control {
+  box-sizing: border-box;
+}
+
 traffic-control *,
 traffic-control *:before,
 traffic-control *:after {
-  box-sizing: border-box;
+  box-sizing: inherit;
 }
 
 traffic-control {
@@ -110,7 +113,15 @@ traffic-control .tc-action--button {
   outline: none;
   cursor: pointer;
   overflow: hidden;
-  transition: .2s ease;
+  transition: .5s ease;
+}
+
+traffic-control .tc-action--button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+traffic-control .tc-action--button:active {
+  transform: scale(0.2);
 }
 
 traffic-control.is-diverged .tc-action--button {
@@ -121,17 +132,17 @@ traffic-control.is-ahead .tc-action--button {
   color: #678BA3;
 }
 
-traffic-control.is-synchronized .tc-action--button {
-  color: #055402;
-}
-
 traffic-control .tc-close {
   display: table-cell;
   vertical-align: middle;
   height: 100%;
   width: 60px;
   border-left: 1px solid #eee;
-  transition: all .2s ease;
+  transition: all .25s ease;
+}
+
+traffic-control .tc-close:hover {
+  background: rgba(0, 0, 0, 0.1);
 }
 
 traffic-control.is-loading .tc-close {
