@@ -8,13 +8,17 @@ import addClassesInSequence from './addClassesInSequence'
 import removeClassesInSequence from './removeClassesInSequence'
 
 /**
- *
+ * @class AnimationEngine
+ * @classdesc a tiny fake animation engine that works by setting enter & leave classes that trigger @keyframe animations
  */
 export default class AnimationEngine {
   /**
-   * [constructor description]
-   * @param  {[type]} opts =             {} [description]
-   * @return {[type]}      [description]
+   * @constructs AnimationEngine
+   * @param  {Object} opts             - settings for animations
+   * @param  {String} opts.enterClass  - the class to add when animating element is entering
+   * @param  {String} opts.leaveClass  - the class to add when animating element is leaving
+   * @param  {String} opts.activeClass - the class to add when animated element is active
+   * @return {Object}                  - an instance of the animation engine
    */
   constructor (opts = {}) {
     this.opts = Object.assign({
@@ -25,10 +29,9 @@ export default class AnimationEngine {
   }
 
   /**
-   * [animateIn description]
-   * @param  {[type]} el    [description]
-   * @param  {[type]} after [description]
-   * @return {[type]}       [description]
+   * Adds class that triggers enter animation for any number of elements.
+   * @param  {HTMLElement} ...els - an argument list of elements
+   * @return {Promise}            - a promise for the completed animation
    */
   animateIn (...els) {
     return Promise.all(els.map((el) => new Promise((resolve) => {
@@ -38,10 +41,9 @@ export default class AnimationEngine {
   }
 
   /**
-   * [animateOut description]
-   * @param  {[type]} el    [description]
-   * @param  {[type]} after [description]
-   * @return {[type]}       [description]
+   * Adds class that triggers leave animation for any number of elements.
+   * @param  {HTMLElement} ...els - an argument list of elements
+   * @return {Promise}            - a promise for the completed animation
    */
   animateOut (...els) {
     return Promise.all(els.map((el) => new Promise((resolve) => {

@@ -1,9 +1,9 @@
 'use strict'
 
 /**
- * [description]
- * @param  {[type]} url [description]
- * @return {[type]}     [description]
+ * fetches an uncached JSON response
+ * @param  {String} url - the URL to grab json from
+ * @return {Promise}    - a promise for the json data
  */
 export default function (url) {
   return new Promise((resolve, reject) => {

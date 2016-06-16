@@ -19,13 +19,19 @@ const netlify = window.netlify
 const localStorage = window.localStorage
 
 /**
- *
+ * @class TrafficControl
+ * @classdesc adds a bar to a website that allows one-click deploys
  */
 export default class TrafficControl {
   /**
-   * [constructor description]
-   * @param  {[type]} opts =             {} [description]
-   * @return {[type]}      [description]
+   * @constructs TrafficControl
+   * @param  {Object}      opts = {}                             - Settings
+   * @param  {HTMLElement} opts.containerEl = document.body      - the container element on which you want to append TrafficControl
+   * @param  {String}      opts.ghAPI = 'https://api.github.com' - the Github API endpoint (differs for enterprise)
+   * @param  {String}      opts.repo                             - the repo e.g. 'declandewet/traffic-control'
+   * @param  {String}      opts.productionBranch = 'master'      - the GIT branch on which your production code is stored
+   * @param  {String}      opts.stagingBranch = 'develop'        - the GIT branch on which your staging code is stored
+   * @return {Object}                                            - An instance of TrafficControl
    */
   constructor (opts = {}) {
     opts = Object.assign({}, this.getDefaultOpts(), opts)
@@ -37,8 +43,8 @@ export default class TrafficControl {
   }
 
   /**
-   * [_getDefaultOpts description]
-   * @return {[type]} [description]
+   * Simply returns default settings.
+   * @return {Object} - the default settings for traffic-control
    */
   getDefaultOpts () {
     return {
@@ -50,9 +56,10 @@ export default class TrafficControl {
   }
 
   /**
-   * [_validateOpts description]
-   * @param  {[type]} opts [description]
-   * @return {[type]}      [description]
+   * Validates user-supplied options.
+   * Throws on invalid options.
+   * @param  {Object} opts - the options to validate
+   * @return {Object}      - if validation is passed, the original options.
    */
   validateOpts (opts) {
     if (opts.repo == null) {
@@ -62,8 +69,8 @@ export default class TrafficControl {
   }
 
   /**
-   * [_init description]
-   * @return {[type]} [description]
+   * Initializes traffic-control. Adds necessary CSS to the page and fills
+   * default UI with necessary markup.
    */
   init () {
     addCSS(styles)
@@ -74,8 +81,8 @@ export default class TrafficControl {
   }
 
   /**
-   * [_initializeElementWithMarkup description]
-   * @return {[type]} [description]
+   * Creates the initial element, registers events and fills
+   * necessary text.
    */
   initializeElementWithMarkup () {
     this.el = document.createElement('traffic-control')
@@ -92,7 +99,7 @@ export default class TrafficControl {
   }
 
   /**
-   * [_addDomRefs description]
+   * Registers `traffic-control` related DOM elements.
    */
   addDomRefs () {
     this.els = this.getDOMReferences({
@@ -115,9 +122,10 @@ export default class TrafficControl {
   }
 
   /**
-   * [addState description]
-   * @param {[type]} name [description]
-   * @param {[type]} opts [description]
+   * Registers a state with `traffic-control`. A state is
+   * a different variation of UI.
+   * @param {String}                    name - name of the state
+   * @param {Object|Array<HTMLElement>} opts - a list of this state's elements or an object containing a `ui` list and a `persist` boolean. Persistence protects the el from being hidden/removed.
    */
   addState (name, opts) {
     let state
@@ -132,7 +140,7 @@ export default class TrafficControl {
   }
 
   /**
-   * [_addStates description]
+   * Registers all of `traffic-control`'s default states.
    */
   addStates () {
     this.addState('mounted', {
@@ -150,7 +158,7 @@ export default class TrafficControl {
   }
 
   /**
-   * [_addEventHooks description]
+   * Registers interaction events.
    */
   addEventHooks () {
     on(this.els.infoBtn, 'click', () => this.renderState('instruction'))
@@ -173,9 +181,11 @@ export default class TrafficControl {
   }
 
   /**
-   * [renderMergeStatus description]
-   * @param  {[type]} { status        } [description]
-   * @return {[type]}   [description]
+   * Called when `deploy` is clicked, renders the state of the deploy.
+   * i.e. was it a success or were there conflicts?
+   * @param  {Object} response        - the response from the git remote
+   * @param  {Number} response.status - the response status code
+   * @return {Promise}                - a promise for the rendered state
    */
   renderMergeStatus ({ status }) {
     if (status === 201) {
@@ -187,8 +197,8 @@ export default class TrafficControl {
   }
 
   /**
-   * [merge description]
-   * @return {[type]} [description]
+   * Triggers a deploy from staging to production.
+   * @return {Promise} - a promise for the merge response.
    */
   merge () {
     return postJSON(`${this.opts.repoURL}/merges?access_token=${localStorage.gh_token}`, {
@@ -199,9 +209,10 @@ export default class TrafficControl {
   }
 
   /**
-   * [_referenceInnerDOM description]
-   * @param  {[type]} classes [description]
-   * @return {[type]}         [description]
+   * References a dictonary of name: class elements
+   * as a dictionary of name: HTMLElement.
+   * @param  {Object} classes - the classes of elements to reference
+   * @return {Object}         - a dictionary reference of actual HTML elements
    */
   getDOMReferences (classes) {
     let o = {}
@@ -214,8 +225,9 @@ export default class TrafficControl {
   }
 
   /**
-   * [_instantiateElement description]
-   * @return {[type]} [description]
+   * Renders the initial state after appending traffic-control
+   * to the containing element.
+   * @return {Promise} - a promise for a mounted `traffic-control`.
    */
   instantiateElementWithDefaultState () {
     this.opts.containerEl.appendChild(this.el)
@@ -223,10 +235,10 @@ export default class TrafficControl {
   }
 
   /**
-   * [_authenticateAndInitialize description]
-   * @return {[type]} [description]
+   * Computes what state traffic-control should render.
+   * @return {Promise} - a promise for the final state, after animation completion.
    */
-  computeAndAnimateState (o = {}) {
+  computeAndAnimateState () {
     return this.renderState('loading')
       .then(() => !localStorage.gh_token
         ? this.renderState('unauthorized')
@@ -237,12 +249,13 @@ export default class TrafficControl {
   }
 
   /**
-   * [renderDeploymentState description]
-   * @param  {[type]} {             status        [description]
-   * @param  {[type]} ahead_by      [description]
-   * @param  {[type]} behind_by     [description]
-   * @param  {[type]} permalink_url }             [description]
-   * @return {[type]}               [description]
+   * Renders deployment state - can be ahead or diverged
+   * @param  {Object} resp               - the JSON response of the git remote branch comparison
+   * @param  {String} resp.status        - the status of the comparison. "ahead", "behind" or "diverged"
+   * @param  {Number} resp.ahead_by      - the number of commits that are ahead.
+   * @param  {Number} resp.behind_by     - the number of commits that are behind.
+   * @param  {String} resp.permalink_url - a link to the remote's diff view.
+   * @return {Promise}                   - a promise for the rendered deployment state.
    */
   renderDeploymentState ({ status, ahead_by, behind_by, permalink_url }) {
     switch (status) {
@@ -258,8 +271,8 @@ export default class TrafficControl {
   }
 
   /**
-   * [getBranchComparison description]
-   * @return {[type]} [description]
+   * Gets a comparison between branches from the git remote.
+   * @return {Promise} - a promise for the JSON response.
    */
   getBranchComparison () {
     const cacheBuster = new Date().getTime()
@@ -269,8 +282,9 @@ export default class TrafficControl {
   }
 
   /**
-   * [getStates description]
-   * @return {[type]} [description]
+   * Gets a list of the current modifiable traffic-control states.
+   * @param {String} opts.filter - filter this state from the result set
+   * @return {Array}             - a list of states
    */
   getCurrentStates ({ filter }) {
     return Object.keys(this.states)
@@ -280,9 +294,9 @@ export default class TrafficControl {
   }
 
   /**
-   * [_renderState description]
-   * @param  {[type]} state [description]
-   * @return {[type]}       [description]
+   * Renders the given state after unrendering current states.
+   * @param  {String}  state - the name of the state to render
+   * @return {Promise}       - a promise for the rendered state
    */
   renderState (state) {
     // get a list of all states
@@ -301,9 +315,9 @@ export default class TrafficControl {
   }
 
   /**
-   * [_unRenderState description]
-   * @param  {[type]} state [description]
-   * @return {[type]}       [description]
+   * Unrenders a state.
+   * @param  {String}  state - the name of the state to unrender.
+   * @return {Promise}       - a promise for the unrendered state
    */
   unRenderState (state) {
     return animator.animateOut(...this.states[state].ui)
@@ -311,10 +325,10 @@ export default class TrafficControl {
   }
 
   /**
-   * [_getAheadMessage description]
-   * @param  {[type]} count [description]
-   * @param  {[type]} link  [description]
-   * @return {[type]}       [description]
+   * Returns a message for ahead state.
+   * @param  {Number} count - the number of commits ahead.
+   * @param  {String} link  - link to diff view
+   * @return {String}       - the compiled message
    */
   getAheadMessage (count, link) {
     return `
@@ -326,10 +340,10 @@ export default class TrafficControl {
   }
 
   /**
-   * [_getDivergedMessage description]
-   * @param  {[type]} count [description]
-   * @param  {[type]} link  [description]
-   * @return {[type]}       [description]
+   * Returns a message for diverged state.
+   * @param  {Number} count - the number of commits behind.
+   * @param  {String} link  - link to diff view
+   * @return {String}       - the compiled message
    */
   getDivergedMessage (count, link) {
     return `
@@ -341,8 +355,8 @@ export default class TrafficControl {
   }
 
   /**
-   * [authenticateGithub description]
-   * @return {[type]} [description]
+   * Authenticates viewer via their Github account.
+   * @return {Promise} - promise for the authenticated session.
    */
   authenticateGithub () {
     return new Promise((resolve, reject) => {

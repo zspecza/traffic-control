@@ -1,8 +1,8 @@
 'use strict'
 
 /**
- * [_addCss description]
- * @param {[type]} css [description]
+ * Adds CSS to the page
+ * @param {String} css - a block of CSS
  */
 export default function addCSS (css) {
   const style = document.createElement('style')

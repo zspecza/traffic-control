@@ -2,6 +2,7 @@
 
 /* polyfills */
 import 'whatwg-fetch'
+// TODO: find out why these break rollup...
 // import 'core-js/fn/object/assign'
 // import 'core-js/fn/object/keys'
 // import 'core-js/fn/array/is-array'
@@ -19,16 +20,16 @@ export default function trafficControl (opts) {
   const netlify = window.netlify
 
   /**
-   * [description]
-   * @return {[type]} [description]
+   * Initialises traffic-control
+   * @return {Promise} - a promise for the initialized traffic-control instance
    */
   const init = () => {
     return new TrafficControl(opts)
   }
 
   /**
-   * [description]
-   * @return {[type]} [description]
+   * Conditionally loads Netlify if not present on page
+   * before initialising traffic-control
    */
   const conditionallyLoadNetlify = () => {
     if (netlify == null) {
@@ -42,6 +43,7 @@ export default function trafficControl (opts) {
     }
   }
 
+  // conditionally load netlify script and bootstrap traffic-control
   if (window.addEventListener) {
     window.addEventListener('load', conditionallyLoadNetlify, false)
   } else if (window.attachEvent) {

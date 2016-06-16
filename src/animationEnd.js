@@ -1,9 +1,8 @@
 'use strict'
 
 /**
- * [description]
- * @param  {[type]} ( [description]
- * @return {[type]}   [description]
+ * Normalizes `animationend` event accross different browsers.
+ * @return {String} - the event name for thecurrent vendor
  */
 export default (() => {
   const el = document.createElement('fakeelement')

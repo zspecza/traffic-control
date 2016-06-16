@@ -4,10 +4,10 @@ import on from './on'
 import off from './off'
 
 /**
- * [addOneEventListener description]
- * @param {[type]} el        [description]
- * @param {[type]} eventName [description]
- * @param {[type]} func      [description]
+ * Adds a one-time-only event listener to an element
+ * @param {HTMLElement} el        - the element to add the listener to
+ * @param {String}      eventName - the name of the event
+ * @param {Function}    func      - the listener to add
  */
 export default function once (el, eventName, func) {
   const cb = (...args) => {
