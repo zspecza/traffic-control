@@ -59,3 +59,53 @@ The final step is to configure Github OAuth for your Netlify site. You can do th
 ## Goals
 
 Eventually, I want to get rid of the dependency on Netlify and have this be its own Github integration. Keep eyes peeled!
+
+## Custom CSS
+
+`traffic-control`'s default styles are designed to have as little footprint as possible.
+
+Using CSS, you can customize just about any element - simply use the ID `#traffic-control` as a namespace before every element.
+
+```css
+#traffic-control .tc-bar { /* custom styles */ }
+```
+
+You can target specific states like so:
+
+```css
+#traffic-control.is-mounted {}
+#traffic-control.is-diverged {}
+#traffic-control.is-ahead {}
+#traffic-control.is-unauthorized {}
+/* ...etc... */
+```
+
+## Animations
+
+`traffic-control` ships with a tiny keyframe-based animation engine.
+
+If an element does not have an `is-active` class, it should be hidden from view.
+
+When an element is about to be rendered, it will have an `is-entering` class.
+Similarly, when an element is about to be hidden, it will have an `is-leaving` class.
+
+You can animate enter/leave states using CSS `@keyframes`:
+
+```css
+#traffic-control .tc-bar.is-entering {
+  animation: slideIn .6s ease;
+}
+
+@keyframes slideIn {
+  from: {
+    transform: translateY(100%);
+  }
+  to: {
+    transform: translateY(0%);
+  }
+}
+```
+
+Animations are intelligent enough to detect the `animationend` event before triggering any new logic.
+
+> **Note**: animations are mandatory. Things will break if each element is not animated. This behavior is intentional and required to keep uniform behavior.
