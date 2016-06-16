@@ -1,7 +1,7 @@
 {
   "name": "traffic-control",
   "description": "Get a grip on staging",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "Declan de Wet <declandewet@me.com>",
   "bugs": {
     "url": "https://github.com/declandewet/traffic-control/issues"
