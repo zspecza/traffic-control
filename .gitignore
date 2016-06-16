@@ -1,6 +1,10 @@
 # Annoying files
 .DS_Store
 
+# temporary
+examples
+rollup.config.dev-test.js
+
 # Logs
 logs
 *.log

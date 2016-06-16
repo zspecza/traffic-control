@@ -1,0 +1,542 @@
+/*
+  Note: there is a lot of repetition going on in this CSS.
+  This is intentional, in order to keep specificity low
+  enough that custom styles are easier to implement.
+ */
+
+traffic-control {
+  box-sizing: border-box;
+}
+
+traffic-control *,
+traffic-control *:before,
+traffic-control *:after {
+  box-sizing: inherit;
+}
+
+traffic-control {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10000;
+}
+
+traffic-control .tc-container {
+  position: relative;
+}
+
+traffic-control .tc-bar {
+  display: none;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  table-layout: fixed;
+  font-family: sans-serif;
+  background: #eee;
+  color: #aaa;
+  transition: all .2s ease;
+  min-height: 60px;
+}
+
+traffic-control.is-loading .tc-bar {
+  background: #eee;
+  color: #aaa;
+}
+
+traffic-control.is-instruction .tc-bar {
+  background: #333;
+  color: #fff;
+}
+
+traffic-control.is-unauthorized .tc-bar {
+  background: #E02D2D;
+  color: #fff;
+}
+
+traffic-control.is-conflict .tc-bar {
+  background: #E02D2D;
+  color: #fff;
+}
+
+traffic-control.is-diverged .tc-bar {
+  background: #FFC72F;
+  color: #784E4E;
+}
+
+traffic-control.is-ahead .tc-bar {
+  background: #B8D5E9;
+  color: #505050;
+}
+
+traffic-control.is-synchronized .tc-bar {
+  background: #BAE9B8;
+  color: #505050;
+}
+
+traffic-control.is-success .tc-bar {
+  background: #BAE9B8;
+  color: #505050;
+}
+
+traffic-control .tc-bar.is-entering {
+  animation: slideInUp .6s ease both;
+  animation-delay: .6s;
+}
+
+traffic-control .tc-bar.is-leaving {
+  animation: slideOutDown .6s ease both;
+}
+
+traffic-control .tc-message {
+  display: table-cell;
+  vertical-align: middle;
+  height: 100%;
+}
+
+traffic-control .tc-action {
+  display: table-cell;
+  vertical-align: middle;
+  height: 100%;
+  width: 100px;
+}
+
+traffic-control .tc-action--button {
+  margin: 0 auto;
+  width: 80%;
+  padding: 8px 0;
+  text-transform: uppercase;
+  color: #eee;
+  background: transparent;
+  border: 1px solid;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  overflow: hidden;
+  transition: .5s ease;
+}
+
+traffic-control .tc-action--button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+traffic-control .tc-action--button:active {
+  transform: scale(0.2);
+}
+
+traffic-control.is-diverged .tc-action--button {
+  color: #BB8800;
+}
+
+traffic-control.is-ahead .tc-action--button {
+  color: #678BA3;
+}
+
+traffic-control .tc-close {
+  display: table-cell;
+  vertical-align: middle;
+  height: 100%;
+  width: 60px;
+  border-left: 1px solid #eee;
+  transition: all .25s ease;
+}
+
+traffic-control .tc-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+traffic-control.is-loading .tc-close {
+  border-color: #ccc;
+}
+
+traffic-control.is-diverged .tc-close {
+  border-color: #FFDA77;
+}
+
+traffic-control.is-instruction .tc-close {
+  border-color: #888;
+}
+
+traffic-control.is-unauthorized .tc-close {
+  border-color: #ED5252;
+}
+
+traffic-control.is-conflict .tc-close {
+  border-color: #ED5252;
+}
+
+traffic-control.is-ahead .tc-close {
+  border-color: #C4DEF0;
+}
+
+traffic-control.is-synchronized .tc-close {
+  border-color: #C6F5C4;
+}
+
+traffic-control.is-success .tc-close {
+  border-color: #C6F5C4;
+}
+
+traffic-control .tc-message--text {
+  font-size: 14px;
+  position: relative;
+  padding: 16px;
+  backface-visibility: hidden;
+}
+
+traffic-control .tc-message--text a {
+  font-weight: bold;
+}
+
+traffic-control.is-diverged .tc-message--text a {
+  color: #BB8800;
+}
+
+traffic-control.is-ahead .tc-message--text a {
+  color: #678BA3;
+}
+
+traffic-control .tc-message--loading {
+  display: none;
+}
+
+traffic-control .tc-message--loading:after {
+  margin-left: -2px;
+  content: ' ';
+  animation: ellipsis 1s linear infinite;
+}
+
+traffic-control .tc-message--loading.is-entering {
+  animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+traffic-control .tc-message--loading.is-leaving {
+  animation: slideOutUp .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+}
+
+traffic-control .tc-message--instruction {
+  display: none;
+  font-family: monospace;
+}
+
+traffic-control .tc-message--instruction.is-entering {
+  animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+traffic-control .tc-message--instruction.is-leaving {
+  animation: slideOutUp .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+}
+
+traffic-control .tc-message--synchronized {
+  display: none;
+}
+
+traffic-control .tc-message--synchronized.is-entering {
+  animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+traffic-control .tc-message--synchronized.is-leaving {
+  animation: slideOutUp .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+}
+
+traffic-control .tc-message--diverged {
+  display: none;
+}
+
+traffic-control .tc-message--diverged.is-entering {
+  animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+traffic-control .tc-message--diverged.is-leaving {
+  animation: slideOutUp .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+}
+
+traffic-control .tc-message--unauthorized {
+  display: none;
+}
+
+traffic-control .tc-message--unauthorized.is-entering {
+  animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+traffic-control .tc-message--unauthorized.is-leaving {
+  animation: slideOutUp .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+}
+
+traffic-control .tc-message--conflict {
+  display: none;
+}
+
+traffic-control .tc-message--conflict.is-entering {
+  animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+traffic-control .tc-message--conflict.is-leaving {
+  animation: slideOutUp .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+}
+
+traffic-control .tc-message--success {
+  display: none;
+}
+
+traffic-control .tc-message--success.is-entering {
+  animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+traffic-control .tc-message--success.is-leaving {
+  animation: slideOutUp .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+}
+
+traffic-control .tc-message--ahead {
+  display: none;
+}
+
+traffic-control .tc-message--ahead.is-entering {
+  animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+traffic-control .tc-message--ahead.is-leaving {
+  animation: slideOutUp .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+}
+
+traffic-control .tc-action--deploy {
+  display: none;
+}
+
+traffic-control .tc-action--deploy.is-entering {
+  animation: slideInUp .6s ease both;
+}
+
+traffic-control .tc-action--deploy.is-leaving {
+  animation: slideOutUp .6s ease both;
+}
+
+traffic-control .tc-action--ok {
+  display: none;
+}
+
+traffic-control .tc-action--ok.is-entering {
+  animation: slideInUp .6s ease both;
+}
+
+traffic-control .tc-action--ok.is-leaving {
+  animation: slideOutUp .6s ease both;
+}
+
+traffic-control .tc-action--info {
+  display: none;
+}
+
+traffic-control .tc-action--info.is-entering {
+  animation: slideInUp .6s ease both;
+}
+
+traffic-control .tc-action--info.is-leaving {
+  animation: slideOutUp .6s ease both;
+}
+
+traffic-control .tc-action--authorize {
+  display: none;
+}
+
+traffic-control .tc-action--authorize.is-entering {
+  animation: slideInUp .6s ease both;
+}
+
+traffic-control .tc-action--authorize.is-leaving {
+  animation: slideOutUp .6s ease both;
+}
+
+traffic-control .tc-action--conflict {
+  display: none;
+}
+
+traffic-control .tc-action--conflict.is-entering {
+  animation: slideInUp .6s ease both;
+}
+
+traffic-control .tc-action--conflict.is-leaving {
+  animation: slideOutUp .6s ease both;
+}
+
+traffic-control .tc-action--success {
+  display: none;
+}
+
+traffic-control .tc-action--success.is-entering {
+  animation: slideInUp .6s ease both;
+}
+
+traffic-control .tc-action--success.is-leaving {
+  animation: slideOutUp .6s ease both;
+}
+
+traffic-control .tc-close--button {
+  display: none;
+  margin: 0 auto;
+  padding: 16px;
+  width: 100%;
+  border: none;
+  outline: none;
+  background: none;
+  color: #eee;
+  font-size: 24px;
+  font-family: Arial, sans-serif;
+  cursor: pointer;
+  height: 100%;
+  position: relative;
+  transition: all .2s ease;
+  text-align: center;
+}
+
+traffic-control.is-loading .tc-close--button {
+  color: #ccc;
+}
+
+traffic-control.is-diverged .tc-close--button {
+  color: #FFDA77;
+}
+
+traffic-control.is-instruction .tc-close--button {
+  color: #888;
+}
+
+traffic-control.is-unauthorized .tc-close--button {
+  color: #ED5252;
+}
+
+traffic-control.is-conflict .tc-close--button {
+  color: #ED5252;
+}
+
+traffic-control.is-ahead .tc-close--button {
+  color: #C4DEF0;
+}
+
+traffic-control.is-synchronized .tc-close--button {
+  color: #C6F5C4;
+}
+
+traffic-control.is-success .tc-close--button {
+  color: #C6F5C4;
+}
+
+traffic-control .tc-close--button.is-entering {
+  animation: slideInUp .6s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+traffic-control .tc-close--button.is-leaving {
+  animation: slideOutUp .6s cubic-bezier(0.95, 0.05, 0.795, 0.035) both;
+}
+
+traffic-control .tc-bar.is-active {
+  display: table;
+}
+
+traffic-control .tc-message--loading.is-active {
+  display: block;
+}
+
+traffic-control .tc-message--synchronized.is-active {
+  display: block;
+}
+
+traffic-control .tc-message--diverged.is-active {
+  display: block;
+}
+
+traffic-control .tc-message--unauthorized.is-active {
+  display: block;
+}
+
+traffic-control .tc-message--conflict.is-active {
+  display: block;
+}
+
+traffic-control .tc-message--success.is-active {
+  display: block;
+}
+
+traffic-control .tc-message--instruction.is-active {
+  display: block;
+}
+
+traffic-control .tc-message--ahead.is-active {
+  display: block;
+}
+
+traffic-control .tc-action--deploy.is-active {
+  display: block;
+}
+
+traffic-control .tc-action--ok.is-active {
+  display: block;
+}
+
+traffic-control .tc-action--conflict.is-active {
+  display: block;
+}
+
+traffic-control .tc-action--success.is-active {
+  display: block;
+}
+
+traffic-control .tc-action--info.is-active {
+  display: block;
+}
+
+traffic-control .tc-action--authorize.is-active {
+  display: block;
+}
+
+traffic-control .tc-close--button.is-active {
+  display: block;
+}
+
+@keyframes slideInUp {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutUp {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes slideOutDown {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes ellipsis {
+  0% {
+    content: ' '
+  }
+  33% {
+    content: '.'
+  }
+  66% {
+    content: '..'
+  }
+  99% {
+    content: '...'
+  }
+}

@@ -1,18 +1,32 @@
 {
   "name": "traffic-control",
   "description": "Get a grip on staging",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "Declan de Wet <declandewet@me.com>",
   "bugs": {
     "url": "https://github.com/declandewet/traffic-control/issues"
   },
   "devDependencies": {
+    "babel-eslint": "^6.0.4",
     "babel-preset-es2015-rollup": "^1.1.1",
-    "rollup": "^0.26.3",
+    "concurrently": "^2.1.0",
+    "core-js": "^2.4.0",
+    "fastdom": "^1.0.2",
+    "http-server": "^0.9.0",
+    "live-reload": "^1.1.0",
+    "open": "0.0.5",
+    "rollup": "^0.30.0",
     "rollup-plugin-babel": "^2.4.0",
-    "rollup-plugin-uglify": "^0.3.1"
+    "rollup-plugin-commonjs": "^3.0.0",
+    "rollup-plugin-node-resolve": "^1.5.0",
+    "rollup-plugin-string": "^1.0.1",
+    "rollup-plugin-uglify": "^0.3.1",
+    "snazzy": "^4.0.0",
+    "watch": "^0.18.0",
+    "whatwg-fetch": "^1.0.0"
   },
   "homepage": "https://github.com/declandewet/traffic-control#readme",
+  "jsnext:main": "src/index.js",
   "license": "MIT",
   "main": "dist/traffic-control.js",
   "repository": {
@@ -21,11 +35,24 @@
   },
   "scripts": {
     "build": "concurrently \"npm run build-dev\" \"npm run build-prod\" \"npm run build-min\"",
-    "build-dev": "rollup --config rollup.config.dev.js",
-    "build-min": "rollup --config rollup.config.minified.js",
+    "build-dev": "rollup -c rollup.config.dev.js",
+    "watch:build": "watch 'npm run build-dev-test' src",
+    "build-dev-test": "rollup -c rollup.config.dev-test.js",
+    "build-min": "rollup -c rollup.config.minified.js",
     "build-prod": "rollup -c",
-    "pretest": "npm run build",
+    "lint": "snazzy",
+    "livereload": "live-reload --port 9091 examples/",
+    "pretest": "npm run lint && npm run build",
     "preversion": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "http-server examples",
+    "open-browser": "open http://localhost:8080",
+    "watch": "npm-run-all --parallel livereload server watch:build open-browser"
+  },
+  "standard": {
+    "ignore": [
+      "dist/**",
+      "README.md"
+    ]
   }
 }
