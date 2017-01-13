@@ -15,7 +15,7 @@
     "http-server": "^0.9.0",
     "live-reload": "^1.1.0",
     "open": "0.0.5",
-    "rollup": "^0.38.0",
+    "rollup": "^0.41.2",
     "rollup-plugin-babel": "^2.4.0",
     "rollup-plugin-commonjs": "^7.0.0",
     "rollup-plugin-node-resolve": "^2.0.0",
