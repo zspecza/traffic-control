@@ -22,7 +22,7 @@
     "rollup-plugin-string": "^2.0.2",
     "rollup-plugin-uglify": "^1.0.1",
     "snazzy": "^6.0.0",
-    "watch": "^1.0.1",
+    "watch": "^1.0.2",
     "whatwg-fetch": "^2.0.0"
   },
   "homepage": "https://github.com/declandewet/traffic-control#readme",
