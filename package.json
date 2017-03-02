@@ -23,7 +23,7 @@
     "rollup-plugin-uglify": "^1.0.1",
     "snazzy": "^6.0.0",
     "watch": "^1.0.1",
-    "whatwg-fetch": "^2.0.0"
+    "whatwg-fetch": "^2.0.3"
   },
   "homepage": "https://github.com/declandewet/traffic-control#readme",
   "jsnext:main": "src/index.js",
