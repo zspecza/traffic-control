@@ -17,7 +17,7 @@
     "open": "0.0.5",
     "rollup": "^0.38.0",
     "rollup-plugin-babel": "^2.4.0",
-    "rollup-plugin-commonjs": "^7.0.0",
+    "rollup-plugin-commonjs": "^8.0.0",
     "rollup-plugin-node-resolve": "^2.0.0",
     "rollup-plugin-string": "^2.0.2",
     "rollup-plugin-uglify": "^1.0.1",
