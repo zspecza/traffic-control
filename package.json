@@ -7,7 +7,7 @@
     "url": "https://github.com/declandewet/traffic-control/issues"
   },
   "devDependencies": {
-    "babel-eslint": "^7.1.0",
+    "babel-eslint": "^8.0.0",
     "babel-preset-es2015-rollup": "^2.0.0",
     "concurrently": "^3.1.0",
     "core-js": "^2.4.0",
