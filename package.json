@@ -10,7 +10,7 @@
     "babel-eslint": "^7.1.0",
     "babel-preset-es2015-rollup": "^2.0.0",
     "concurrently": "^3.1.0",
-    "core-js": "^2.4.0",
+    "core-js": "^3.0.0",
     "fastdom": "^1.0.2",
     "http-server": "^0.9.0",
     "live-reload": "^1.1.0",
