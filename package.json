@@ -14,7 +14,7 @@
     "fastdom": "^1.0.2",
     "http-server": "^0.9.0",
     "live-reload": "^1.1.0",
-    "open": "0.0.5",
+    "open": "6.0.0",
     "rollup": "^0.38.0",
     "rollup-plugin-babel": "^2.4.0",
     "rollup-plugin-commonjs": "^7.0.0",
